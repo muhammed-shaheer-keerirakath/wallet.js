@@ -12,7 +12,7 @@ const {
   // SeedBytes,
   CryptoBytes,
 } = require('@theqrl/dilithium5');
-const { SeedBinToMnemonic } = require('./utils/mnemonic.js');
+const { seedBinToMnemonic } = require('../utils/helper.js');
 
 function getDilithiumDescriptor(address) {
   /*
@@ -95,7 +95,7 @@ class Dilithium {
   }
 
   getMnemonic() {
-    return SeedBinToMnemonic(this.seed);
+    return seedBinToMnemonic(this.seed);
   }
 
   getAddress() {

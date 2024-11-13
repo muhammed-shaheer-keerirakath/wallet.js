@@ -1,6 +1,8 @@
-const dilithium = require('./dilithium.js');
-const mnemonic = require('./utils/mnemonic.js');
-const wordlist = require('./qrl/wordlist.js');
+const dilithium = require('./dilithium/dilithium.js');
+const helper = require('./utils/helper.js');
+const wordlist = require('./utils/wordList.js');
+const xmss = require('./xmss/xmss.js');
+const xmssFast = require('./xmss/xmssFast.js');
 
 module.exports = {
   Dilithium: dilithium.Dilithium,
@@ -9,7 +11,9 @@ module.exports = {
   getDilithiumAddressFromPK: dilithium.getDilithiumAddressFromPK,
   getDilithiumDescriptor: dilithium.getDilithiumDescriptor,
   isValidDilithiumAddress: dilithium.isValidDilithiumAddress,
-  MnemonicToSeedBin: mnemonic.MnemonicToSeedBin,
-  SeedBinToMnemonic: mnemonic.SeedBinToMnemonic,
+  mnemonicToSeedBin: helper.mnemonicToSeedBin,
+  seedBinToMnemonic: helper.seedBinToMnemonic,
+  xmss,
+  xmssFast,
   WORD_LIST: wordlist.WordList,
 };

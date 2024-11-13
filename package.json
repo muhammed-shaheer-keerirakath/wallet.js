@@ -14,6 +14,7 @@
   "author": "QRL contributors <info@theqrl.org> (https://theqrl.org)",
   "license": "MIT",
   "dependencies": {
+    "@noble/hashes": "^1.5.0",
     "@theqrl/dilithium5": "^0.0.9",
     "randombytes": "^2.1.0",
     "sha3": "^2.1.4"

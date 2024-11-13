@@ -11,7 +11,7 @@ const {
   extractSignature,
   getDilithiumAddressFromPK,
   isValidDilithiumAddress,
-} = require('../src/dilithium.js');
+} = require('../src/dilithium/dilithium.js');
 
 const DilithiumWallet = Dilithium;
 
