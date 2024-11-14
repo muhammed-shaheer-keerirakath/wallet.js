@@ -5,7 +5,7 @@ import {
   newQRLDescriptorFromExtendedSeed,
   newWOTSParams,
   newXMSSParams,
-} from '../src/classes.js';
+} from '@theqrl/xmss';
 import { COMMON, CONSTANTS, HASH_FUNCTION } from '../src/xmss/constants.js';
 import {
   getHeightFromSigSize,

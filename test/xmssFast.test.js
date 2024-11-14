@@ -1,5 +1,4 @@
-import { newBDSState, newXMSSParams } from '../classes';
-import { HASH_FUNCTION } from '../src/constants.js';
+import { newBDSState, newXMSSParams, HASH_FUNCTION } from '@theqrl/xmss';
 import { XMSSFastGenKeyPair, treeHashSetup, xmssFastUpdate } from '../src/xmss/xmssFast.js';
 import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
 

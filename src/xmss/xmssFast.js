@@ -1,7 +1,17 @@
 /// <reference path="typedefs.js" />
 
-import { hashH } from './hash.js';
-import { setLTreeAddr, setOTSAddr, setTreeHeight, setTreeIndex, setType, shake256 } from './helper.js';
+const {
+  setType,
+  setLTreeAddr,
+  setOTSAddr,
+  genLeafWOTS,
+  setTreeHeight,
+  setTreeIndex,
+  hashH,
+  shake256,
+  bdsRound,
+  bdsTreeHashUpdate,
+} = require('@theqrl/xmss');
 
 /**
  * @param {HashFunction} hashFunction

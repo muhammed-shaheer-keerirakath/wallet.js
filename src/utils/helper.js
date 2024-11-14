@@ -1,4 +1,4 @@
-import { COMMON } from '../packages/xmss/constants.js';
+import { COMMON } from '../xmss/constants.js';
 import WORD_LIST from './wordList.js';
 
 /**

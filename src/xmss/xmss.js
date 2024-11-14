@@ -2,17 +2,6 @@
 
 import { randomBytes } from '@noble/hashes/utils';
 import {
-  newBDSState,
-  newQRLDescriptor,
-  newQRLDescriptorFromBytes,
-  newQRLDescriptorFromExtendedPk,
-  newQRLDescriptorFromExtendedSeed,
-  newWOTSParams,
-  newXMSSParams,
-} from './classes.js';
-import { COMMON, CONSTANTS, OFFSET_PUB_SEED, OFFSET_ROOT, WOTS_PARAM } from './constants.js';
-import { hashH } from './hash.js';
-import {
   extendedSeedBinToMnemonic,
   setChainAddr,
   setLTreeAddr,
@@ -22,7 +11,24 @@ import {
   setType,
   shake256,
   toByteLittleEndian,
-} from './helper.js';
+  hashH,
+  xmssFastSignMessage,
+  calcBaseW,
+  genChain,
+  hMsg,
+  lTree,
+  newXMSSParams,
+  newBDSState,
+  newWOTSParams,
+  calculateSignatureBaseSize,
+} from '@theqrl/xmss';
+import {
+  newQRLDescriptor,
+  newQRLDescriptorFromBytes,
+  newQRLDescriptorFromExtendedPk,
+  newQRLDescriptorFromExtendedSeed,
+} from './classes.js';
+import { COMMON, CONSTANTS, OFFSET_PUB_SEED, OFFSET_ROOT, WOTS_PARAM } from './constants.js';
 import { XMSSFastGenKeyPair, xmssFastUpdate } from './xmssFast.js';
 
 /**

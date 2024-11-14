@@ -1,4 +1,3 @@
-import { COMMON } from '../../packages/xmss/constants';
 import {
   binToMnemonic,
   extendedSeedBinToMnemonic,
@@ -7,6 +6,7 @@ import {
   mnemonicToSeedBin,
   seedBinToMnemonic,
 } from '../src/utils/helper.js';
+import { COMMON } from '../src/xmss/constants.js';
 import { getUInt8ArrayFromHex } from './testUtility.js';
 
 const { expect } = require('chai');
