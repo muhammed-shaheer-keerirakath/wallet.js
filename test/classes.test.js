@@ -3,31 +3,13 @@ import {
   newQRLDescriptorFromBytes,
   newQRLDescriptorFromExtendedPk,
   newQRLDescriptorFromExtendedSeed,
-  newXMSSParams,
 } from '../src/xmss/classes.js';
-import { newWOTSParams } from '../classes';
-import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
 import { COMMON, CONSTANTS, HASH_FUNCTION } from '../src/xmss/constants.js';
+import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
 
 const { expect } = require('chai');
 
 describe('Test cases for [classes]', () => {
-  describe('newXMSSParams', () => {
-    it('should create a WOTSParams instance', () => {
-      const n = 2;
-      const h = 4;
-      const w = 6;
-      const k = 8;
-      const xmssParams = newXMSSParams(n, h, w, k);
-
-      expect(Object.getOwnPropertyNames(xmssParams)).to.deep.equal(['wotsParams', 'n', 'h', 'k']);
-      expect(xmssParams.wotsParams).to.deep.equal(newWOTSParams(n, w));
-      expect(xmssParams.n).to.equal(n);
-      expect(xmssParams.h).to.equal(h);
-      expect(xmssParams.k).to.equal(k);
-    });
-  });
-
   describe('newQRLDescriptor', () => {
     it('should create a QRLDescriptor instance', () => {
       const [height] = getUInt8ArrayFromHex('05');

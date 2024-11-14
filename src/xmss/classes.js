@@ -1,25 +1,4 @@
-import { newWOTSParams } from '@theqrl/qrypto.js/classes';
 import { COMMON, CONSTANTS } from './constants.js';
-
-class XMSSParamsClass {
-  constructor(n, h, w, k) {
-    this.wotsParams = newWOTSParams(n, w);
-    this.n = n;
-    this.h = h;
-    this.k = k;
-  }
-}
-
-/**
- * @param {Uint32Array[number]} n
- * @param {Uint32Array[number]} h
- * @param {Uint32Array[number]} w
- * @param {Uint32Array[number]} k
- * @returns {XMSSParams}
- */
-export function newXMSSParams(n, h, w, k) {
-  return new XMSSParamsClass(n, h, w, k);
-}
 
 class QRLDescriptorClass {
   /** @returns {Uint8Array[number]} */
