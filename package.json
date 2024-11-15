@@ -6,6 +6,7 @@
   "types": "types/index.d.ts",
   "scripts": {
     "test": "mocha",
+    "build": "rollup src/index.js --file ./dist/cjs/xmss.js --format cjs && rollup src/index.js --file ./dist/mjs/xmss.js --format esm && ./fixup",
     "lint-check": "eslint 'src/**/*.js' 'test/**/*.js'",
     "lint": "eslint --fix 'src/**/*.js' 'test/**/*.js'",
     "report-coverage": "c8 --reporter=text-lcov npm run test > coverage.lcov",
@@ -39,6 +40,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "mocha": "^10.2.0",
     "prettier": "^2.8.7",
+    "rollup": "^4.9.5",
     "typescript": "^5.5.4"
   }
 }

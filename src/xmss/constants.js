@@ -1,15 +1,15 @@
-export const CONSTANTS = Object.freeze({
+const CONSTANTS = Object.freeze({
   EXTENDED_PK_SIZE: 67,
   MAX_HEIGHT: 254,
 });
 
-export const HASH_FUNCTION = Object.freeze({
+const HASH_FUNCTION = Object.freeze({
   SHA2_256: 0,
   SHAKE_128: 1,
   SHAKE_256: 2,
 });
 
-export const COMMON = Object.freeze({
+const COMMON = Object.freeze({
   XMSS_SIG: 1,
   DESCRIPTOR_SIZE: 3,
   ADDRESS_SIZE: 20,
@@ -18,14 +18,22 @@ export const COMMON = Object.freeze({
   SHA256_2X: 0,
 });
 
-export const WOTS_PARAM = Object.freeze({
+const WOTS_PARAM = Object.freeze({
   K: 2,
   W: 16,
   N: 32,
 });
 
-export const OFFSET_IDX = 0;
-export const OFFSET_SK_SEED = OFFSET_IDX + 4;
-export const OFFSET_SK_PRF = OFFSET_SK_SEED + 32;
-export const OFFSET_PUB_SEED = OFFSET_SK_PRF + 32;
-export const OFFSET_ROOT = OFFSET_PUB_SEED + 32;
+const OFFSET_IDX = 0;
+const OFFSET_SK_SEED = OFFSET_IDX + 4;
+const OFFSET_SK_PRF = OFFSET_SK_SEED + 32;
+const OFFSET_PUB_SEED = OFFSET_SK_PRF + 32;
+const OFFSET_ROOT = OFFSET_PUB_SEED + 32;
+
+module.exports = {
+  CONSTANTS,
+  HASH_FUNCTION,
+  COMMON,
+  WOTS_PARAM,
+  OFFSET_ROOT,
+};

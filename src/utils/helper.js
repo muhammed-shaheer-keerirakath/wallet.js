@@ -1,11 +1,11 @@
-import { COMMON } from '../xmss/constants.js';
-import WORD_LIST from './wordList.js';
+const { COMMON } = require('../xmss/constants.js');
+const { WORD_LIST } = require('./wordList.js');
 
 /**
  * @param {Uint8Array} input
  * @returns {string}
  */
-export function binToMnemonic(input) {
+function binToMnemonic(input) {
   if (input.length % 3 !== 0) {
     throw new Error('byte count needs to be a multiple of 3');
   }
@@ -39,7 +39,7 @@ export function binToMnemonic(input) {
  * @param {Uint8Array} input
  * @returns {string}
  */
-export function seedBinToMnemonic(input) {
+function seedBinToMnemonic(input) {
   if (input.length !== COMMON.SEED_SIZE) {
     throw new Error(`input should be an array of size ${COMMON.SEED_SIZE}`);
   }
@@ -51,7 +51,7 @@ export function seedBinToMnemonic(input) {
  * @param {Uint8Array} input
  * @returns {string}
  */
-export function extendedSeedBinToMnemonic(input) {
+function extendedSeedBinToMnemonic(input) {
   if (input.length !== COMMON.EXTENDED_SEED_SIZE) {
     throw new Error(`input should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
   }
@@ -63,7 +63,7 @@ export function extendedSeedBinToMnemonic(input) {
  * @param {string} mnemonic
  * @returns {Uint8Array}
  */
-export function mnemonicToBin(mnemonic) {
+function mnemonicToBin(mnemonic) {
   const mnemonicWords = mnemonic.split(' ');
   const wordCount = mnemonicWords.length;
   if (wordCount % 2 !== 0) {
@@ -113,7 +113,7 @@ export function mnemonicToBin(mnemonic) {
  * @param {string} mnemonic
  * @returns {Uint8Array}
  */
-export function mnemonicToSeedBin(mnemonic) {
+function mnemonicToSeedBin(mnemonic) {
   const output = mnemonicToBin(mnemonic);
 
   if (output.length !== COMMON.SEED_SIZE) {
@@ -136,7 +136,7 @@ export function mnemonicToSeedBin(mnemonic) {
  * @param {string} mnemonic
  * @returns {Uint8Array}
  */
-export function mnemonicToExtendedSeedBin(mnemonic) {
+function mnemonicToExtendedSeedBin(mnemonic) {
   const output = mnemonicToBin(mnemonic);
 
   if (output.length !== COMMON.EXTENDED_SEED_SIZE) {
@@ -154,3 +154,12 @@ export function mnemonicToExtendedSeedBin(mnemonic) {
 
   return sizedOutput;
 }
+
+module.exports = {
+  binToMnemonic,
+  seedBinToMnemonic,
+  extendedSeedBinToMnemonic,
+  mnemonicToBin,
+  mnemonicToSeedBin,
+  mnemonicToExtendedSeedBin,
+};

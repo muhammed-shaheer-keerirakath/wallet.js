@@ -1,13 +1,12 @@
-import {
-  newBDSState,
+const { newBDSState, newWOTSParams, newXMSSParams } = require('@theqrl/xmss');
+const { expect } = require('chai');
+const {
   newQRLDescriptor,
   newQRLDescriptorFromExtendedPk,
   newQRLDescriptorFromExtendedSeed,
-  newWOTSParams,
-  newXMSSParams,
-} from '@theqrl/xmss';
-import { COMMON, CONSTANTS, HASH_FUNCTION } from '../src/xmss/constants.js';
-import {
+} = require('../src/xmss/classes.js');
+const { COMMON, CONSTANTS, HASH_FUNCTION } = require('../src/xmss/constants.js');
+const {
   getHeightFromSigSize,
   getXMSSAddressFromPK,
   initializeTree,
@@ -21,10 +20,8 @@ import {
   verifyWithCustomWOTSParamW,
   wotsPKFromSig,
   xmssVerifySig,
-} from '../src/xmss/xmss.js';
-import { getUInt8ArrayFromHex } from './testUtility.js';
-
-const { expect } = require('chai');
+} = require('../src/xmss/xmss.js');
+const { getUInt8ArrayFromHex } = require('./testUtility.js');
 
 describe('Test cases for [xmss]', function testFunction() {
   this.timeout(0);

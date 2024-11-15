@@ -1,4 +1,4 @@
-import { COMMON, CONSTANTS } from './constants.js';
+const { COMMON, CONSTANTS } = require('./constants.js');
 
 class QRLDescriptorClass {
   /** @returns {Uint8Array[number]} */
@@ -44,7 +44,7 @@ class QRLDescriptorClass {
  * @param {AddrFormatType} addrFormatType
  * @returns {QRLDescriptor}
  */
-export function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
+function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
   return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
 }
 
@@ -52,7 +52,7 @@ export function newQRLDescriptor(height, hashFunction, signatureType, addrFormat
  * @param {Uint8Array} descriptorBytes
  * @returns {QRLDescriptor}
  */
-export function newQRLDescriptorFromBytes(descriptorBytes) {
+function newQRLDescriptorFromBytes(descriptorBytes) {
   if (descriptorBytes.length !== 3) {
     throw new Error('Descriptor size should be 3 bytes');
   }
@@ -69,7 +69,7 @@ export function newQRLDescriptorFromBytes(descriptorBytes) {
  * @param {Uint8Array} extendedSeed
  * @returns {QRLDescriptor}
  */
-export function newQRLDescriptorFromExtendedSeed(extendedSeed) {
+function newQRLDescriptorFromExtendedSeed(extendedSeed) {
   if (extendedSeed.length !== COMMON.EXTENDED_SEED_SIZE) {
     throw new Error(`extendedSeed should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
   }
@@ -81,10 +81,18 @@ export function newQRLDescriptorFromExtendedSeed(extendedSeed) {
  * @param {Uint8Array} extendedPk
  * @returns {QRLDescriptor}
  */
-export function newQRLDescriptorFromExtendedPk(extendedPk) {
+function newQRLDescriptorFromExtendedPk(extendedPk) {
   if (extendedPk.length !== CONSTANTS.EXTENDED_PK_SIZE) {
     throw new Error(`extendedPk should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
   }
 
   return newQRLDescriptorFromBytes(extendedPk.subarray(0, COMMON.DESCRIPTOR_SIZE));
 }
+
+module.exports = {
+  QRLDescriptorClass,
+  newQRLDescriptor,
+  newQRLDescriptorFromBytes,
+  newQRLDescriptorFromExtendedSeed,
+  newQRLDescriptorFromExtendedPk,
+};

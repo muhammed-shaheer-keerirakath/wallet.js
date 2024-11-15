@@ -1,7 +1,7 @@
 /// <reference path="typedefs.js" />
 
-import { randomBytes } from '@noble/hashes/utils';
-import {
+const { randomBytes } = require('@noble/hashes/utils');
+const {
   extendedSeedBinToMnemonic,
   setChainAddr,
   setLTreeAddr,
@@ -21,21 +21,21 @@ import {
   newBDSState,
   newWOTSParams,
   calculateSignatureBaseSize,
-} from '@theqrl/xmss';
-import {
+} = require('@theqrl/xmss');
+const {
   newQRLDescriptor,
   newQRLDescriptorFromBytes,
   newQRLDescriptorFromExtendedPk,
   newQRLDescriptorFromExtendedSeed,
-} from './classes.js';
-import { COMMON, CONSTANTS, OFFSET_PUB_SEED, OFFSET_ROOT, WOTS_PARAM } from './constants.js';
-import { XMSSFastGenKeyPair, xmssFastUpdate } from './xmssFast.js';
+} = require('./classes.js');
+const { COMMON, CONSTANTS, OFFSET_PUB_SEED, OFFSET_ROOT, WOTS_PARAM } = require('./constants.js');
+const { XMSSFastGenKeyPair, xmssFastUpdate } = require('./xmssFast.js');
 
 /**
  * @param {Uint8Array} ePK
  * @returns {Uint8Array}
  */
-export function getXMSSAddressFromPK(ePK) {
+function getXMSSAddressFromPK(ePK) {
   const desc = newQRLDescriptorFromExtendedPk(ePK);
 
   if (desc.getAddrFormatType() !== COMMON.SHA256_2X) {
@@ -222,7 +222,7 @@ class XMSSClass {
  * @param {QRLDescriptor} desc
  * @returns {XMSS}
  */
-export function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
+function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
   return new XMSSClass(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
 }
 
@@ -231,7 +231,7 @@ export function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, de
  * @param {Uint8Array} seed
  * @returns {XMSS}
  */
-export function initializeTree(desc, seed) {
+function initializeTree(desc, seed) {
   if (seed.length !== COMMON.SEED_SIZE) {
     throw new Error(`seed should be an array of size ${COMMON.SEED_SIZE}`);
   }
@@ -263,7 +263,7 @@ export function initializeTree(desc, seed) {
  * @param {AddrFormatType} addrFormatType
  * @returns {XMSS}
  */
-export function newXMSSFromSeed(seed, height, hashFunction, addrFormatType) {
+function newXMSSFromSeed(seed, height, hashFunction, addrFormatType) {
   if (seed.length !== COMMON.SEED_SIZE) {
     throw new Error(`seed should be an array of size ${COMMON.SEED_SIZE}`);
   }
@@ -281,7 +281,7 @@ export function newXMSSFromSeed(seed, height, hashFunction, addrFormatType) {
  * @param {Uint8Array} extendedSeed
  * @returns {XMSS}
  */
-export function newXMSSFromExtendedSeed(extendedSeed) {
+function newXMSSFromExtendedSeed(extendedSeed) {
   if (extendedSeed.length !== COMMON.EXTENDED_SEED_SIZE) {
     throw new Error(`extendedSeed should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
   }
@@ -298,7 +298,7 @@ export function newXMSSFromExtendedSeed(extendedSeed) {
  * @param {HashFunction} hashFunction
  * @returns {XMSS}
  */
-export function newXMSSFromHeight(height, hashFunction) {
+function newXMSSFromHeight(height, hashFunction) {
   const seed = randomBytes(COMMON.SEED_SIZE);
 
   return newXMSSFromSeed(seed, height, hashFunction, COMMON.SHA256_2X);
@@ -309,7 +309,7 @@ export function newXMSSFromHeight(height, hashFunction) {
  * @param {Uint32Array[number]} wotsParamW
  * @returns {Uint32Array[number]}
  */
-export function getHeightFromSigSize(sigSize, wotsParamW) {
+function getHeightFromSigSize(sigSize, wotsParamW) {
   const wotsParam = newWOTSParams(WOTS_PARAM.N, wotsParamW);
   const signatureBaseSize = calculateSignatureBaseSize(wotsParam.keySize);
   if (sigSize < signatureBaseSize) {
@@ -327,7 +327,7 @@ export function getHeightFromSigSize(sigSize, wotsParamW) {
  * @param {Uint8Array} address
  * @returns {boolean}
  */
-export function isValidXMSSAddress(address) {
+function isValidXMSSAddress(address) {
   if (address.length !== COMMON.ADDRESS_SIZE) {
     throw new Error(`address should be an array of size ${COMMON.ADDRESS_SIZE}`);
   }
@@ -352,7 +352,7 @@ export function isValidXMSSAddress(address) {
  * @param {Uint8Array} pubSeed
  * @param {Uint32Array} addr
  */
-export function wotsPKFromSig(hashfunction, pk, sig, msg, wotsParams, pubSeed, addr) {
+function wotsPKFromSig(hashfunction, pk, sig, msg, wotsParams, pubSeed, addr) {
   if (addr.length !== 8) {
     throw new Error('addr should be an array of size 8');
   }
@@ -412,7 +412,7 @@ export function wotsPKFromSig(hashfunction, pk, sig, msg, wotsParams, pubSeed, a
  * @param {Uint8Array} pubSeed
  * @param {Uint32Array} addr
  */
-export function validateAuthPath(hashFunction, root, leaf, leafIdx, authpath, n, h, pubSeed, addr) {
+function validateAuthPath(hashFunction, root, leaf, leafIdx, authpath, n, h, pubSeed, addr) {
   if (addr.length !== 8) {
     throw new Error('addr should be an array of size 8');
   }
@@ -469,7 +469,7 @@ export function validateAuthPath(hashFunction, root, leaf, leafIdx, authpath, n,
  * @param {Uint32Array[number]} h
  * @returns {boolean}
  */
-export function xmssVerifySig(hashFunction, wotsParams, msg, sigMsg, pk, h) {
+function xmssVerifySig(hashFunction, wotsParams, msg, sigMsg, pk, h) {
   let [sigMsgOffset] = new Uint32Array([0]);
 
   const { n } = wotsParams;
@@ -548,7 +548,7 @@ export function xmssVerifySig(hashFunction, wotsParams, msg, sigMsg, pk, h) {
  * @param {Uint32Array[number]} wotsParamW
  * @returns {boolean}
  */
-export function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsParamW) {
+function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsParamW) {
   if (extendedPK.length !== CONSTANTS.EXTENDED_PK_SIZE) {
     throw new Error(`extendedPK should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
   }
@@ -600,10 +600,26 @@ export function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsP
  * @param {Uint8Array} extendedPK
  * @returns {boolean}
  */
-export function verify(message, signature, extendedPK) {
+function verify(message, signature, extendedPK) {
   if (extendedPK.length !== CONSTANTS.EXTENDED_PK_SIZE) {
     throw new Error(`extendedPK should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
   }
 
   return verifyWithCustomWOTSParamW(message, signature, extendedPK, WOTS_PARAM.W);
 }
+
+module.exports = {
+  getXMSSAddressFromPK,
+  newXMSS,
+  initializeTree,
+  newXMSSFromSeed,
+  newXMSSFromExtendedSeed,
+  newXMSSFromHeight,
+  getHeightFromSigSize,
+  isValidXMSSAddress,
+  wotsPKFromSig,
+  validateAuthPath,
+  xmssVerifySig,
+  verifyWithCustomWOTSParamW,
+  verify,
+};

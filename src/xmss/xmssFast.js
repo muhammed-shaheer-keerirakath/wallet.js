@@ -23,7 +23,7 @@ const {
  * @param {Uint8Array} pubSeed
  * @param {Uint32Array} addr
  */
-export function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, pubSeed, addr) {
+function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, pubSeed, addr) {
   const { n, h, k } = xmssParams;
 
   const otsAddr = new Uint32Array(8);
@@ -127,7 +127,7 @@ export function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssP
  * @param {BDSState} bdsState
  * @param {Uint8Array} seed
  */
-export function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
+function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
   if (xmssParams.h % 2 === 1) {
     throw new Error('Not a valid h, only even numbers supported! Try again with an even number');
   }
@@ -172,7 +172,7 @@ export function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, s
  * @param {Uint32Array[number]} newIdx
  * @returns {Uint32Array[number]}
  */
-export function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
+function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
   const [numElems] = new Uint32Array([1 << params.h]);
   const currentIdx =
     (new Uint32Array([sk[0]])[0] << 24) |
@@ -214,3 +214,9 @@ export function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
 
   return 0;
 }
+
+module.exports = {
+  treeHashSetup,
+  XMSSFastGenKeyPair,
+  xmssFastUpdate,
+};

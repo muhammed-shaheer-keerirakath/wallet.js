@@ -1,8 +1,7 @@
-import { newBDSState, newXMSSParams, HASH_FUNCTION } from '@theqrl/xmss';
-import { XMSSFastGenKeyPair, treeHashSetup, xmssFastUpdate } from '../src/xmss/xmssFast.js';
-import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
-
+const { newBDSState, newXMSSParams, HASH_FUNCTION } = require('@theqrl/xmss');
 const { expect } = require('chai');
+const { XMSSFastGenKeyPair, treeHashSetup, xmssFastUpdate } = require('../src/xmss/xmssFast.js');
+const { getUInt32ArrayFromHex, getUInt8ArrayFromHex } = require('./testUtility.js');
 
 describe('Test cases for [xmssFast]', () => {
   describe('treeHashSetup', () => {

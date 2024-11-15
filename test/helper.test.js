@@ -1,15 +1,14 @@
-import {
+const { expect } = require('chai');
+const {
   binToMnemonic,
   extendedSeedBinToMnemonic,
   mnemonicToBin,
   mnemonicToExtendedSeedBin,
   mnemonicToSeedBin,
   seedBinToMnemonic,
-} from '../src/utils/helper.js';
-import { COMMON } from '../src/xmss/constants.js';
-import { getUInt8ArrayFromHex } from './testUtility.js';
-
-const { expect } = require('chai');
+} = require('../src/utils/helper.js');
+const { COMMON } = require('../src/xmss/constants.js');
+const { getUInt8ArrayFromHex } = require('./testUtility.js');
 
 describe('Test cases for [helper]', () => {
   describe('binToMnemonic', () => {
