@@ -9,6 +9,8 @@ const {
   newBDSState,
   newWOTSParams,
   calculateSignatureBaseSize,
+  getHeightFromSigSize,
+  xmssVerifySig,
 } = require('@theqrl/xmss');
 const {
   newQRLDescriptor,
