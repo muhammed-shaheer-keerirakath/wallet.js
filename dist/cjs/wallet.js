@@ -4815,7 +4815,7 @@ class XMSSClass {
 
   /** @returns {string} */
   getMnemonic() {
-    return xmss.extendedSeedBinToMnemonic(this.getExtendedSeed());
+    return extendedSeedBinToMnemonic(this.getExtendedSeed());
   }
 
   /** @returns {Uint8Array} */

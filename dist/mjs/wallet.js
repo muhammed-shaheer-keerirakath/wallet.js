@@ -2,7 +2,7 @@ import { SHAKE } from 'sha3';
 import randomBytes from 'randombytes';
 import { cryptoSignKeypair, cryptoSign, CryptoBytes, cryptoSignOpen, cryptoSignVerify, CryptoPublicKeyBytes, CryptoSecretKeyBytes } from '@theqrl/dilithium5';
 import { randomBytes as randomBytes$1 } from '@noble/hashes/utils';
-import { setType, setLTreeAddr, setOTSAddr, genLeafWOTS, setTreeHeight, setTreeIndex, hashH, shake256, bdsRound, bdsTreeHashUpdate, extendedSeedBinToMnemonic as extendedSeedBinToMnemonic$1, xmssFastSignMessage, newXMSSParams, newBDSState, newWOTSParams, calculateSignatureBaseSize, getHeightFromSigSize, xmssVerifySig } from '@theqrl/xmss';
+import { setType, setLTreeAddr, setOTSAddr, genLeafWOTS, setTreeHeight, setTreeIndex, hashH, shake256, bdsRound, bdsTreeHashUpdate, xmssFastSignMessage, newXMSSParams, newBDSState, newWOTSParams, calculateSignatureBaseSize, getHeightFromSigSize, xmssVerifySig } from '@theqrl/xmss';
 
 const CONSTANTS = Object.freeze({
   EXTENDED_PK_SIZE: 67,
@@ -4813,7 +4813,7 @@ class XMSSClass {
 
   /** @returns {string} */
   getMnemonic() {
-    return extendedSeedBinToMnemonic$1(this.getExtendedSeed());
+    return extendedSeedBinToMnemonic(this.getExtendedSeed());
   }
 
   /** @returns {Uint8Array} */
