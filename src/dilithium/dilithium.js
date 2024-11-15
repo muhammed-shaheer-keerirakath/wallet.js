@@ -1,7 +1,6 @@
-const { SHAKE } = require('sha3');
-const randomBytes = require('randombytes');
-
-const {
+import { SHAKE } from 'sha3';
+import randomBytes from 'randombytes';
+import {
   cryptoSign,
   cryptoSignKeypair,
   cryptoSignOpen,
@@ -11,10 +10,10 @@ const {
   CryptoSecretKeyBytes,
   // SeedBytes,
   CryptoBytes,
-} = require('@theqrl/dilithium5');
-const { seedBinToMnemonic } = require('../utils/helper.js');
+} from '@theqrl/dilithium5';
+import { seedBinToMnemonic } from '../utils/helper.js';
 
-function getDilithiumDescriptor(address) {
+export function getDilithiumDescriptor(address) {
   /*
         In case of Dilithium address, it doesn't have any choice of hashFunction,
         height, addrFormatType. Thus keeping all those values to 0 and assigning
@@ -26,7 +25,7 @@ function getDilithiumDescriptor(address) {
   return 2 << 4;
 }
 
-function getDilithiumAddressFromPK(pk) {
+export function getDilithiumAddressFromPK(pk) {
   const addressSize = 20;
   const address = new Uint8Array(addressSize);
   const descBytes = getDilithiumDescriptor(address);
@@ -41,7 +40,7 @@ function getDilithiumAddressFromPK(pk) {
   return address;
 }
 
-class Dilithium {
+export class Dilithium {
   constructor(seed = null) {
     this.pk = null;
     this.sk = null;
@@ -119,25 +118,25 @@ class Dilithium {
 
 // Open the sealed message m. Returns the original message sealed with signature.
 // In case the signature is invalid, nil is returned.
-function openMessage(signatureMessage, pk) {
+export function openMessage(signatureMessage, pk) {
   return cryptoSignOpen(signatureMessage, pk);
 }
 
-function verifyMessage(message, signature, pk) {
+export function verifyMessage(message, signature, pk) {
   return cryptoSignVerify(signature, message, pk);
 }
 
 // ExtractMessage extracts message from Signature attached with message.
-function extractMessage(signatureMessage) {
+export function extractMessage(signatureMessage) {
   return signatureMessage.slice(CryptoBytes, signatureMessage.length);
 }
 
 // ExtractSignature extracts signature from Signature attached with message.
-function extractSignature(signatureMessage) {
+export function extractSignature(signatureMessage) {
   return signatureMessage.slice(0, CryptoBytes);
 }
 
-function isValidDilithiumAddress(address) {
+export function isValidDilithiumAddress(address) {
   const d = getDilithiumDescriptor(address);
   if (address[0] !== d) {
     return false;
@@ -145,14 +144,3 @@ function isValidDilithiumAddress(address) {
   // TODO: Add checksum
   return true;
 }
-
-module.exports = {
-  Dilithium,
-  getDilithiumAddressFromPK,
-  getDilithiumDescriptor,
-  openMessage,
-  verifyMessage,
-  extractMessage,
-  extractSignature,
-  isValidDilithiumAddress,
-};

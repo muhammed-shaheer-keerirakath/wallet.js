@@ -1,12 +1,12 @@
-const { expect } = require('chai');
-const {
+import { expect } from 'chai';
+import {
   newQRLDescriptor,
   newQRLDescriptorFromBytes,
   newQRLDescriptorFromExtendedPk,
   newQRLDescriptorFromExtendedSeed,
-} = require('../src/xmss/classes.js');
-const { COMMON, CONSTANTS, HASH_FUNCTION } = require('../src/xmss/constants.js');
-const { getUInt32ArrayFromHex, getUInt8ArrayFromHex } = require('./testUtility.js');
+} from '../src/xmss/classes.js';
+import { COMMON, CONSTANTS, HASH_FUNCTION } from '../src/xmss/constants.js';
+import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
 
 describe('Test cases for [classes]', () => {
   describe('newQRLDescriptor', () => {

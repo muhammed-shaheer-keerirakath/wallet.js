@@ -1,6 +1,6 @@
-const { COMMON, CONSTANTS } = require('./constants.js');
+import { COMMON, CONSTANTS } from './constants.js';
 
-class QRLDescriptorClass {
+export class QRLDescriptorClass {
   /** @returns {Uint8Array[number]} */
   getHeight() {
     return this.height;
@@ -44,7 +44,7 @@ class QRLDescriptorClass {
  * @param {AddrFormatType} addrFormatType
  * @returns {QRLDescriptor}
  */
-function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
+export function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
   return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
 }
 
@@ -52,7 +52,7 @@ function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
  * @param {Uint8Array} descriptorBytes
  * @returns {QRLDescriptor}
  */
-function newQRLDescriptorFromBytes(descriptorBytes) {
+export function newQRLDescriptorFromBytes(descriptorBytes) {
   if (descriptorBytes.length !== 3) {
     throw new Error('Descriptor size should be 3 bytes');
   }
@@ -69,7 +69,7 @@ function newQRLDescriptorFromBytes(descriptorBytes) {
  * @param {Uint8Array} extendedSeed
  * @returns {QRLDescriptor}
  */
-function newQRLDescriptorFromExtendedSeed(extendedSeed) {
+export function newQRLDescriptorFromExtendedSeed(extendedSeed) {
   if (extendedSeed.length !== COMMON.EXTENDED_SEED_SIZE) {
     throw new Error(`extendedSeed should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
   }
@@ -81,18 +81,10 @@ function newQRLDescriptorFromExtendedSeed(extendedSeed) {
  * @param {Uint8Array} extendedPk
  * @returns {QRLDescriptor}
  */
-function newQRLDescriptorFromExtendedPk(extendedPk) {
+export function newQRLDescriptorFromExtendedPk(extendedPk) {
   if (extendedPk.length !== CONSTANTS.EXTENDED_PK_SIZE) {
     throw new Error(`extendedPk should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
   }
 
   return newQRLDescriptorFromBytes(extendedPk.subarray(0, COMMON.DESCRIPTOR_SIZE));
 }
-
-module.exports = {
-  QRLDescriptorClass,
-  newQRLDescriptor,
-  newQRLDescriptorFromBytes,
-  newQRLDescriptorFromExtendedSeed,
-  newQRLDescriptorFromExtendedPk,
-};

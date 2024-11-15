@@ -1,6 +1,6 @@
 /* The following functions are only used within this library for testing purposes, and not part of the library for end user. */
 
-const UINT = {
+export const UINT = {
   8: 8,
   32: 32,
 };
@@ -10,7 +10,7 @@ const UINT = {
  * @param {keyof typeof UINT} variant
  * @returns {Uint8Array | Uint32Array}
  */
-const getUIntArrayFromHex = (hexString, variant) => {
+export const getUIntArrayFromHex = (hexString, variant) => {
   let charSize;
   let strLength;
   let uIntArray;
@@ -35,13 +35,6 @@ const getUIntArrayFromHex = (hexString, variant) => {
   return uIntArray;
 };
 
-const getUInt8ArrayFromHex = (hexString) => getUIntArrayFromHex(hexString, UINT[8]);
+export const getUInt8ArrayFromHex = (hexString) => getUIntArrayFromHex(hexString, UINT[8]);
 
-const getUInt32ArrayFromHex = (hexString) => getUIntArrayFromHex(hexString, UINT[32]);
-
-module.exports = {
-  UINT,
-  getUIntArrayFromHex,
-  getUInt8ArrayFromHex,
-  getUInt32ArrayFromHex,
-};
+export const getUInt32ArrayFromHex = (hexString) => getUIntArrayFromHex(hexString, UINT[32]);

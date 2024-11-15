@@ -1,6 +1,6 @@
-const { expect } = require('chai');
-const { describe } = require('mocha');
-const { WORD_LIST } = require('../src/utils/wordList.js');
+import { expect } from 'chai';
+import { describe } from 'mocha';
+import WORD_LIST from '../src/utils/wordList.js';
 
 describe('Test cases for [wordList]', () => {
   it('should ensure that the mnemonics word list has the original 4096 items', () => {

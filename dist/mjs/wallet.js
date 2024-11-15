@@ -1,3 +1,41 @@
+import { SHAKE } from 'sha3';
+import randomBytes from 'randombytes';
+import { cryptoSignKeypair, cryptoSign, CryptoBytes, cryptoSignOpen, cryptoSignVerify, CryptoPublicKeyBytes, CryptoSecretKeyBytes } from '@theqrl/dilithium5';
+import { randomBytes as randomBytes$1 } from '@noble/hashes/utils';
+import { setType, setLTreeAddr, setOTSAddr, genLeafWOTS, setTreeHeight, setTreeIndex, hashH, shake256, bdsRound, bdsTreeHashUpdate, extendedSeedBinToMnemonic as extendedSeedBinToMnemonic$1, xmssFastSignMessage, newXMSSParams, newBDSState, newWOTSParams, calculateSignatureBaseSize, getHeightFromSigSize, xmssVerifySig } from '@theqrl/xmss';
+
+const CONSTANTS = Object.freeze({
+  EXTENDED_PK_SIZE: 67,
+  MAX_HEIGHT: 254,
+});
+
+const HASH_FUNCTION = Object.freeze({
+  SHA2_256: 0,
+  SHAKE_128: 1,
+  SHAKE_256: 2,
+});
+
+const COMMON = Object.freeze({
+  XMSS_SIG: 1,
+  DESCRIPTOR_SIZE: 3,
+  ADDRESS_SIZE: 20,
+  SEED_SIZE: 48,
+  EXTENDED_SEED_SIZE: 51,
+  SHA256_2X: 0,
+});
+
+const WOTS_PARAM = Object.freeze({
+  K: 2,
+  W: 16,
+  N: 32,
+});
+
+const OFFSET_IDX = 0;
+const OFFSET_SK_SEED = OFFSET_IDX + 4;
+const OFFSET_SK_PRF = OFFSET_SK_SEED + 32;
+const OFFSET_PUB_SEED = OFFSET_SK_PRF + 32;
+const OFFSET_ROOT = OFFSET_PUB_SEED + 32;
+
 const WORD_LIST = [
   'aback',
   'abbey',
@@ -4097,4 +4135,947 @@ const WORD_LIST = [
   'zurich',
 ];
 
-export default WORD_LIST;
+/**
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
+function binToMnemonic(input) {
+  if (input.length % 3 !== 0) {
+    throw new Error('byte count needs to be a multiple of 3');
+  }
+
+  const buf = [];
+  const separator = ' ';
+  for (let nibble = 0; nibble < input.length * 2; nibble += 3) {
+    const p = nibble >>> 1;
+    const [b1] = new Uint32Array([input[p]]);
+    let [b2] = new Uint32Array([0]);
+    if (p + 1 < input.length) {
+      [b2] = new Uint32Array([input[p + 1]]);
+    }
+    let [idx] = new Uint32Array([0]);
+    if (nibble % 2 === 0) {
+      idx = (b1 << 4) + (b2 >>> 4);
+    } else {
+      idx = ((b1 & 0x0f) << 8) + b2;
+    }
+    try {
+      buf.push(WORD_LIST[idx]);
+    } catch (error) {
+      throw new Error(`ExtendedSeedBinToMnemonic error ${error?.message}`);
+    }
+  }
+
+  return buf.join(separator);
+}
+
+/**
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
+function seedBinToMnemonic(input) {
+  if (input.length !== COMMON.SEED_SIZE) {
+    throw new Error(`input should be an array of size ${COMMON.SEED_SIZE}`);
+  }
+
+  return binToMnemonic(input);
+}
+
+/**
+ * @param {Uint8Array} input
+ * @returns {string}
+ */
+function extendedSeedBinToMnemonic(input) {
+  if (input.length !== COMMON.EXTENDED_SEED_SIZE) {
+    throw new Error(`input should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
+  }
+
+  return binToMnemonic(input);
+}
+
+/**
+ * @param {string} mnemonic
+ * @returns {Uint8Array}
+ */
+function mnemonicToBin(mnemonic) {
+  const mnemonicWords = mnemonic.split(' ');
+  const wordCount = mnemonicWords.length;
+  if (wordCount % 2 !== 0) {
+    throw new Error(`Word count = ${wordCount} must be even`);
+  }
+
+  const wordLookup = {};
+
+  for (let i = 0; i < WORD_LIST.length; i++) {
+    wordLookup[WORD_LIST[i]] = i;
+  }
+
+  const result = new Uint8Array((wordCount * 15) / 10);
+  let current = 0;
+  let buffering = 0;
+  let resultIndex = 0;
+  for (let i = 0; i < wordCount; i++) {
+    const w = mnemonicWords[i];
+    const found = w in wordLookup;
+    if (!found) {
+      throw new Error('Invalid word in mnemonic');
+    }
+    const value = wordLookup[w];
+
+    buffering += 3;
+    current = (current << 12) + value;
+    while (buffering > 2) {
+      const shift = 4 * (buffering - 2);
+      const mask = (1 << shift) - 1;
+      const tmp = current >>> shift;
+      buffering -= 2;
+      current &= mask;
+      result.set([tmp], resultIndex);
+      resultIndex++;
+    }
+  }
+
+  if (buffering > 0) {
+    result.set([current & 0xff], resultIndex);
+    resultIndex++;
+  }
+
+  return result;
+}
+
+/**
+ * @param {string} mnemonic
+ * @returns {Uint8Array}
+ */
+function mnemonicToSeedBin(mnemonic) {
+  const output = mnemonicToBin(mnemonic);
+
+  if (output.length !== COMMON.SEED_SIZE) {
+    throw new Error('Unexpected MnemonicToSeedBin output size');
+  }
+
+  const sizedOutput = new Uint8Array(COMMON.SEED_SIZE);
+  for (
+    let sizedOutputIndex = 0, outputIndex = 0;
+    sizedOutputIndex < sizedOutput.length && outputIndex < output.length;
+    sizedOutputIndex++, outputIndex++
+  ) {
+    sizedOutput.set([output[outputIndex]], sizedOutputIndex);
+  }
+
+  return sizedOutput;
+}
+
+/**
+ * @param {string} mnemonic
+ * @returns {Uint8Array}
+ */
+function mnemonicToExtendedSeedBin(mnemonic) {
+  const output = mnemonicToBin(mnemonic);
+
+  if (output.length !== COMMON.EXTENDED_SEED_SIZE) {
+    throw new Error('Unexpected MnemonicToExtendedSeedBin output size');
+  }
+
+  const sizedOutput = new Uint8Array(COMMON.EXTENDED_SEED_SIZE);
+  for (
+    let sizedOutputIndex = 0, outputIndex = 0;
+    sizedOutputIndex < sizedOutput.length && outputIndex < output.length;
+    sizedOutputIndex++, outputIndex++
+  ) {
+    sizedOutput.set([output[outputIndex]], sizedOutputIndex);
+  }
+
+  return sizedOutput;
+}
+
+function getDilithiumDescriptor(address) {
+  /*
+        In case of Dilithium address, it doesn't have any choice of hashFunction,
+        height, addrFormatType. Thus keeping all those values to 0 and assigning
+        only signatureType in the descriptor.
+    */
+  if (!address) {
+    throw new Error('Address is not defined');
+  }
+  return 2 << 4;
+}
+
+function getDilithiumAddressFromPK(pk) {
+  const addressSize = 20;
+  const address = new Uint8Array(addressSize);
+  const descBytes = getDilithiumDescriptor(address);
+  address[0] = descBytes;
+  const hashedKey = new SHAKE(256);
+  hashedKey.update(Buffer.from(pk));
+  let hashedKeyDigest = hashedKey.digest({ buffer: Buffer.alloc(32), encoding: 'hex' });
+  hashedKeyDigest = hashedKeyDigest.slice(hashedKeyDigest.length - addressSize + 1);
+  for (let i = 0; i < hashedKeyDigest.length; i++) {
+    address[i + 1] = hashedKeyDigest[i];
+  }
+  return address;
+}
+
+class Dilithium {
+  constructor(seed = null) {
+    this.pk = null;
+    this.sk = null;
+    this.seed = seed;
+    this.randomizedSigning = false;
+    if (this.seed === null) {
+      this.create();
+    } else {
+      this.fromSeed();
+    }
+  }
+
+  create() {
+    const pk = new Uint8Array(CryptoPublicKeyBytes);
+    const sk = new Uint8Array(CryptoSecretKeyBytes);
+    const seed = randomBytes(48);
+    const hashedSeed = new SHAKE(256);
+    hashedSeed.update(seed);
+    const seedBuf = hashedSeed.digest({ buffer: Buffer.alloc(32) });
+    cryptoSignKeypair(seedBuf, pk, sk);
+    this.pk = pk;
+    this.sk = sk;
+    this.seed = seed;
+  }
+
+  fromSeed() {
+    const pk = new Uint8Array(CryptoPublicKeyBytes);
+    const sk = new Uint8Array(CryptoSecretKeyBytes);
+    const hashedSeed = new SHAKE(256);
+    hashedSeed.update(this.seed);
+    const seedBuf = hashedSeed.digest({ buffer: Buffer.alloc(32) });
+    cryptoSignKeypair(seedBuf, pk, sk);
+    this.pk = pk;
+    this.sk = sk;
+  }
+
+  getPK() {
+    return this.pk;
+  }
+
+  getSK() {
+    return this.sk;
+  }
+
+  getSeed() {
+    return this.seed;
+  }
+
+  getHexSeed() {
+    return `0x${this.seed.toString('hex')}`;
+  }
+
+  getMnemonic() {
+    return seedBinToMnemonic(this.seed);
+  }
+
+  getAddress() {
+    return getDilithiumAddressFromPK(this.pk);
+  }
+
+  // Seal the message, returns signature attached with message.
+  seal(message) {
+    return cryptoSign(message, this.sk, this.randomizedSigning);
+  }
+
+  // Sign the message, and return a detached signature. Detached signatures are
+  // variable sized, but never larger than SIG_SIZE_PACKED.
+  sign(message) {
+    const sm = cryptoSign(message, this.sk);
+    let signature = new Uint8Array(CryptoBytes);
+    signature = sm.slice(0, CryptoBytes);
+    return signature;
+  }
+}
+
+// Open the sealed message m. Returns the original message sealed with signature.
+// In case the signature is invalid, nil is returned.
+function openMessage(signatureMessage, pk) {
+  return cryptoSignOpen(signatureMessage, pk);
+}
+
+function verifyMessage(message, signature, pk) {
+  return cryptoSignVerify(signature, message, pk);
+}
+
+// ExtractMessage extracts message from Signature attached with message.
+function extractMessage(signatureMessage) {
+  return signatureMessage.slice(CryptoBytes, signatureMessage.length);
+}
+
+// ExtractSignature extracts signature from Signature attached with message.
+function extractSignature(signatureMessage) {
+  return signatureMessage.slice(0, CryptoBytes);
+}
+
+function isValidDilithiumAddress(address) {
+  const d = getDilithiumDescriptor(address);
+  if (address[0] !== d) {
+    return false;
+  }
+  // TODO: Add checksum
+  return true;
+}
+
+class QRLDescriptorClass {
+  /** @returns {Uint8Array[number]} */
+  getHeight() {
+    return this.height;
+  }
+
+  /** @returns {HashFunction} */
+  getHashFunction() {
+    return this.hashFunction;
+  }
+
+  /** @returns {SignatureType} */
+  getSignatureType() {
+    return this.signatureType;
+  }
+
+  /** @returns {AddrFormatType} */
+  getAddrFormatType() {
+    return this.addrFormatType;
+  }
+
+  /** @returns {Uint8Array} */
+  getBytes() {
+    const output = new Uint8Array(COMMON.DESCRIPTOR_SIZE);
+    output.set([(this.signatureType << 4) | (this.hashFunction & 0x0f)], 0);
+    output.set([(this.addrFormatType << 4) | ((this.height >>> 1) & 0x0f)], 1);
+    return output;
+  }
+
+  constructor(hashFunction, signatureType, height, addrFormatType) {
+    this.hashFunction = hashFunction;
+    this.signatureType = signatureType;
+    this.height = height;
+    this.addrFormatType = addrFormatType;
+  }
+}
+
+/**
+ * @param {Uint8Array[number]} height
+ * @param {HashFunction} hashFunction
+ * @param {SignatureType} signatureType
+ * @param {AddrFormatType} addrFormatType
+ * @returns {QRLDescriptor}
+ */
+function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
+  return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
+}
+
+/**
+ * @param {Uint8Array} descriptorBytes
+ * @returns {QRLDescriptor}
+ */
+function newQRLDescriptorFromBytes(descriptorBytes) {
+  if (descriptorBytes.length !== 3) {
+    throw new Error('Descriptor size should be 3 bytes');
+  }
+
+  return new QRLDescriptorClass(
+    descriptorBytes[0] & 0x0f,
+    (descriptorBytes[0] >>> 4) & 0x0f,
+    (descriptorBytes[1] & 0x0f) << 1,
+    (descriptorBytes[1] & 0xf0) >>> 4
+  );
+}
+
+/**
+ * @param {Uint8Array} extendedSeed
+ * @returns {QRLDescriptor}
+ */
+function newQRLDescriptorFromExtendedSeed(extendedSeed) {
+  if (extendedSeed.length !== COMMON.EXTENDED_SEED_SIZE) {
+    throw new Error(`extendedSeed should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
+  }
+
+  return newQRLDescriptorFromBytes(extendedSeed.subarray(0, COMMON.DESCRIPTOR_SIZE));
+}
+
+/**
+ * @param {Uint8Array} extendedPk
+ * @returns {QRLDescriptor}
+ */
+function newQRLDescriptorFromExtendedPk(extendedPk) {
+  if (extendedPk.length !== CONSTANTS.EXTENDED_PK_SIZE) {
+    throw new Error(`extendedPk should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
+  }
+
+  return newQRLDescriptorFromBytes(extendedPk.subarray(0, COMMON.DESCRIPTOR_SIZE));
+}
+
+/// <reference path="typedefs.js" />
+
+
+/**
+ * @param {HashFunction} hashFunction
+ * @param {Uint8Array} node
+ * @param {Uint32Array[number]} index
+ * @param {BDSState} bdsState
+ * @param {Uint8Array} skSeed
+ * @param {XMSSParams} xmssParams
+ * @param {Uint8Array} pubSeed
+ * @param {Uint32Array} addr
+ */
+function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, pubSeed, addr) {
+  const { n, h, k } = xmssParams;
+
+  const otsAddr = new Uint32Array(8);
+  const lTreeAddr = new Uint32Array(8);
+  const nodeAddr = new Uint32Array(8);
+
+  otsAddr.set(addr.subarray(0, 3));
+  setType(otsAddr, 0);
+
+  lTreeAddr.set(addr.subarray(0, 3));
+  setType(lTreeAddr, 1);
+
+  nodeAddr.set(addr.subarray(0, 3));
+  setType(nodeAddr, 2);
+
+  const lastNode = index + (1 << h);
+
+  const bound = h - k;
+  const stack = new Uint8Array((h + 1) * n);
+  const stackLevels = new Uint32Array(h + 1);
+  let stackOffset = new Uint32Array([0])[0];
+  let nodeH = new Uint32Array([0])[0];
+
+  const bdsState1 = bdsState;
+  for (let i = 0; i < bound; i++) {
+    bdsState1.treeHash[i].h = i;
+    bdsState1.treeHash[i].completed = 1;
+    bdsState1.treeHash[i].stackUsage = 0;
+  }
+
+  for (let i = 0, index1 = index; index1 < lastNode; i++, index1++) {
+    setLTreeAddr(lTreeAddr, index1);
+    setOTSAddr(otsAddr, index1);
+
+    genLeafWOTS(
+      hashFunction,
+      stack.subarray(stackOffset * n, stackOffset * n + n),
+      skSeed,
+      xmssParams,
+      pubSeed,
+      lTreeAddr,
+      otsAddr
+    );
+
+    stackLevels.set([0], stackOffset);
+    stackOffset++;
+    if (h - k > 0 && i === 3) {
+      bdsState1.treeHash[0].node.set(stack.subarray(stackOffset * n, stackOffset * n + n));
+    }
+    while (stackOffset > 1 && stackLevels[stackOffset - 1] === stackLevels[stackOffset - 2]) {
+      nodeH = stackLevels[stackOffset - 1];
+      if (i >>> nodeH === 1) {
+        const authStart = nodeH * n;
+        const stackStart = (stackOffset - 1) * n;
+        for (
+          let authIndex = authStart, stackIndex = stackStart;
+          authIndex < authStart + n && stackIndex < stackStart + n;
+          authIndex++, stackIndex++
+        ) {
+          bdsState1.auth.set([stack[stackIndex]], authIndex);
+        }
+      } else if (nodeH < h - k && i >>> nodeH === 3) {
+        const stackStart = (stackOffset - 1) * n;
+        bdsState1.treeHash[nodeH].node.set(stack.subarray(stackStart, stackStart + n));
+      } else if (nodeH >= h - k) {
+        const retainStart = ((1 << (h - 1 - nodeH)) + nodeH - h + (((i >>> nodeH) - 3) >>> 1)) * n;
+        const stackStart = (stackOffset - 1) * n;
+        for (
+          let retainIndex = retainStart, stackIndex = stackStart;
+          retainIndex < retainStart + n && stackIndex < stackStart + n;
+          retainIndex++, stackIndex++
+        ) {
+          bdsState1.retain.set([stack[stackIndex]], retainIndex);
+        }
+      }
+      setTreeHeight(nodeAddr, stackLevels[stackOffset - 1]);
+      setTreeIndex(nodeAddr, index1 >>> (stackLevels[stackOffset - 1] + 1));
+      const stackStart = (stackOffset - 2) * n;
+
+      hashH(
+        hashFunction,
+        stack.subarray(stackStart, stackStart + n),
+        stack.subarray(stackStart, stackStart + 2 * n),
+        pubSeed,
+        nodeAddr,
+        n
+      );
+
+      stackLevels[stackOffset - 2]++;
+      stackOffset--;
+    }
+  }
+  node.set(stack.subarray(0, n));
+}
+
+/**
+ * @param {HashFunction} hashFunction
+ * @param {XMSSParams} xmssParams
+ * @param {Uint8Array} pk
+ * @param {Uint8Array} sk
+ * @param {BDSState} bdsState
+ * @param {Uint8Array} seed
+ */
+function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
+  if (xmssParams.h % 2 === 1) {
+    throw new Error('Not a valid h, only even numbers supported! Try again with an even number');
+  }
+
+  const { n } = xmssParams;
+
+  sk.set([0, 0, 0, 0]);
+
+  const randombits = new Uint8Array(3 * n);
+
+  shake256(randombits, seed);
+
+  const rnd = 96;
+  const pks = new Uint32Array([32])[0];
+  sk.set(randombits.subarray(0, rnd), 4);
+  for (let pkIndex = n, skIndex = 4 + 2 * n; pkIndex < pk.length && skIndex < 4 + 2 * n + pks; pkIndex++, skIndex++) {
+    pk.set([sk[skIndex]], pkIndex);
+  }
+
+  const addr = new Uint32Array(8);
+  treeHashSetup(
+    hashFunction,
+    pk,
+    0,
+    bdsState,
+    sk.subarray(4, 4 + n),
+    xmssParams,
+    sk.subarray(4 + 2 * n, 4 + 2 * n + n),
+    addr
+  );
+
+  for (let skIndex = 4 + 3 * n, pkIndex = 0; skIndex < sk.length && pkIndex < pks; skIndex++, pkIndex++) {
+    sk.set([pk[pkIndex]], skIndex);
+  }
+}
+
+/**
+ * @param {HashFunction} hashFunction
+ * @param {XMSSParams} params
+ * @param {Uint8Array} sk
+ * @param {BDSState} bdsState
+ * @param {Uint32Array[number]} newIdx
+ * @returns {Uint32Array[number]}
+ */
+function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
+  const [numElems] = new Uint32Array([1 << params.h]);
+  const currentIdx =
+    (new Uint32Array([sk[0]])[0] << 24) |
+    (new Uint32Array([sk[1]])[0] << 16) |
+    (new Uint32Array([sk[2]])[0] << 8) |
+    new Uint32Array([sk[3]])[0];
+
+  if (newIdx >= numElems) {
+    throw new Error('Index too high');
+  }
+  if (newIdx < currentIdx) {
+    throw new Error('Cannot rewind');
+  }
+
+  const skSeed = new Uint8Array(params.n);
+  skSeed.set(sk.subarray(4, 4 + params.n));
+
+  const startOffset = 4 + 2 * 32;
+  const pubSeed = new Uint8Array(params.n);
+  for (
+    let pubSeedIndex = 0, skIndex = startOffset;
+    pubSeedIndex < 32 && skIndex < startOffset + 32;
+    pubSeedIndex++, skIndex++
+  ) {
+    pubSeed.set([sk[skIndex]], pubSeedIndex);
+  }
+
+  const otsAddr = new Uint32Array(8);
+
+  for (let i = currentIdx; i < newIdx; i++) {
+    if (i >= numElems) {
+      return -1;
+    }
+    bdsRound(hashFunction, bdsState, i, skSeed, params, pubSeed, otsAddr);
+    bdsTreeHashUpdate(hashFunction, bdsState, (params.h - params.k) >>> 1, skSeed, params, pubSeed, otsAddr);
+  }
+
+  sk.set(new Uint8Array([(newIdx >>> 24) & 0xff, (newIdx >>> 16) & 0xff, (newIdx >>> 8) & 0xff, newIdx & 0xff]));
+
+  return 0;
+}
+
+/// <reference path="typedefs.js" />
+
+
+/**
+ * @param {Uint8Array} ePK
+ * @returns {Uint8Array}
+ */
+function getXMSSAddressFromPK(ePK) {
+  const desc = newQRLDescriptorFromExtendedPk(ePK);
+
+  if (desc.getAddrFormatType() !== COMMON.SHA256_2X) {
+    throw new Error('Address format type not supported');
+  }
+
+  const address = new Uint8Array(COMMON.ADDRESS_SIZE);
+  const descBytes = desc.getBytes();
+
+  for (
+    let addressIndex = 0, descBytesIndex = 0;
+    addressIndex < COMMON.DESCRIPTOR_SIZE && descBytesIndex < descBytes.length;
+    addressIndex++, descBytesIndex++
+  ) {
+    address.set([descBytes[descBytesIndex]], addressIndex);
+  }
+
+  const hashedKey = new Uint8Array(32);
+  shake256(hashedKey, ePK);
+
+  for (
+    let addressIndex = COMMON.DESCRIPTOR_SIZE,
+      hashedKeyIndex = hashedKey.length - COMMON.ADDRESS_SIZE + COMMON.DESCRIPTOR_SIZE;
+    addressIndex < address.length && hashedKeyIndex < hashedKey.length;
+    addressIndex++, hashedKeyIndex++
+  ) {
+    address.set([hashedKey[hashedKeyIndex]], addressIndex);
+  }
+
+  return address;
+}
+
+class XMSSClass {
+  /**
+   * @param {Uint32Array[number]} newIndex
+   * @returns {void}
+   */
+  setIndex(newIndex) {
+    xmssFastUpdate(this.hashFunction, this.xmssParams, this.sk, this.bdsState, newIndex);
+  }
+
+  /** @returns {Uint8Array[number]} */
+  getHeight() {
+    return this.height;
+  }
+
+  /** @returns {Uint8Array} */
+  getPKSeed() {
+    return this.sk.subarray(OFFSET_PUB_SEED, OFFSET_PUB_SEED + 32);
+  }
+
+  /** @returns {Uint8Array} */
+  getSeed() {
+    return this.seed;
+  }
+
+  /** @returns {Uint8Array} */
+  getExtendedSeed() {
+    const extendedSeed = new Uint8Array(COMMON.EXTENDED_SEED_SIZE);
+    const descBytes = this.desc.getBytes();
+    const seed = this.getSeed();
+    for (
+      let extSeedIndex = 0, bytesIndex = 0;
+      extSeedIndex < 3 && bytesIndex < descBytes.length;
+      extSeedIndex++, bytesIndex++
+    ) {
+      extendedSeed.set([descBytes[bytesIndex]], extSeedIndex);
+    }
+    for (
+      let extSeedIndex = 3, seedIndex = 0;
+      extSeedIndex < extendedSeed.length && seedIndex < seed.length;
+      extSeedIndex++, seedIndex++
+    ) {
+      extendedSeed.set([seed[seedIndex]], extSeedIndex);
+    }
+
+    return extendedSeed;
+  }
+
+  /** @returns {string} */
+  getHexSeed() {
+    const eSeed = this.getExtendedSeed();
+
+    return `0x${Array.from(eSeed)
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('')}`;
+  }
+
+  /** @returns {string} */
+  getMnemonic() {
+    return extendedSeedBinToMnemonic$1(this.getExtendedSeed());
+  }
+
+  /** @returns {Uint8Array} */
+  getRoot() {
+    return this.sk.subarray(OFFSET_ROOT, OFFSET_ROOT + 32);
+  }
+
+  /** @returns {Uint8Array} */
+  getPK() {
+    const desc = this.desc.getBytes();
+    const root = this.getRoot();
+    const pubSeed = this.getPKSeed();
+
+    const output = new Uint8Array(CONSTANTS.EXTENDED_PK_SIZE);
+    let offset = 0;
+    for (let i = 0; i < desc.length; i++) {
+      output.set([desc[i]], i);
+    }
+    offset += desc.length;
+    for (let i = 0; i < root.length; i++) {
+      output.set([root[i]], offset + i);
+    }
+    offset += root.length;
+    for (let i = 0; i < pubSeed.length; i++) {
+      output.set([pubSeed[i]], offset + i);
+    }
+
+    return output;
+  }
+
+  /** @returns {Uint8Array} */
+  getSK() {
+    return this.sk;
+  }
+
+  /** @returns {Uint8Array} */
+  getAddress() {
+    return getXMSSAddressFromPK(this.getPK());
+  }
+
+  /** @returns {Uint32Array[number]} */
+  getIndex() {
+    return (
+      (new Uint32Array([this.sk[0]])[0] << 24) +
+      (new Uint32Array([this.sk[1]])[0] << 16) +
+      (new Uint32Array([this.sk[2]])[0] << 8) +
+      new Uint32Array([this.sk[3]])[0]
+    );
+  }
+
+  /**
+   * @param {Uint8Array} message
+   * @returns {SignatureReturnType}
+   */
+  sign(message) {
+    const index = this.getIndex();
+    this.setIndex(index);
+
+    return xmssFastSignMessage(this.hashFunction, this.xmssParams, this.sk, this.bdsState, message);
+  }
+
+  /**
+   * @param {XMSSParams} xmssParams
+   * @param {HashFunction} hashFunction
+   * @param {Uint8Array[number]} height
+   * @param {Uint8Array} sk
+   * @param {Uint8Array} seed
+   * @param {BDSState} bdsState
+   * @param {QRLDescriptor} desc
+   */
+  constructor(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
+    if (seed.length !== COMMON.SEED_SIZE) {
+      throw new Error(`seed should be an array of size ${COMMON.SEED_SIZE}`);
+    }
+
+    this.xmssParams = xmssParams;
+    this.hashFunction = hashFunction;
+    this.height = height;
+    this.sk = sk;
+    this.seed = seed;
+    this.bdsState = bdsState;
+    this.desc = desc;
+  }
+}
+
+/**
+ * @param {XMSSParams} xmssParams
+ * @param {HashFunction} hashFunction
+ * @param {Uint8Array[number]} height
+ * @param {Uint8Array} sk
+ * @param {Uint8Array} seed
+ * @param {BDSState} bdsState
+ * @param {QRLDescriptor} desc
+ * @returns {XMSS}
+ */
+function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
+  return new XMSSClass(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
+}
+
+/**
+ * @param {QRLDescriptor} desc
+ * @param {Uint8Array} seed
+ * @returns {XMSS}
+ */
+function initializeTree(desc, seed) {
+  if (seed.length !== COMMON.SEED_SIZE) {
+    throw new Error(`seed should be an array of size ${COMMON.SEED_SIZE}`);
+  }
+
+  const [height] = new Uint32Array([desc.getHeight()]);
+  const hashFunction = desc.getHashFunction();
+  const sk = new Uint8Array(132);
+  const pk = new Uint8Array(64);
+
+  const k = WOTS_PARAM.K;
+  const w = WOTS_PARAM.W;
+  const n = WOTS_PARAM.N;
+
+  if (k >= height || (height - k) % 2 === 1) {
+    throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
+  }
+
+  const xmssParams = newXMSSParams(n, height, w, k);
+  const bdsState = newBDSState(height, n, k);
+  XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed);
+
+  return newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
+}
+
+/**
+ * @param {Uint8Array} seed
+ * @param {Uint8Array[number]} height
+ * @param {HashFunction} hashFunction
+ * @param {AddrFormatType} addrFormatType
+ * @returns {XMSS}
+ */
+function newXMSSFromSeed(seed, height, hashFunction, addrFormatType) {
+  if (seed.length !== COMMON.SEED_SIZE) {
+    throw new Error(`seed should be an array of size ${COMMON.SEED_SIZE}`);
+  }
+
+  const signatureType = COMMON.XMSS_SIG;
+  if (height > CONSTANTS.MAX_HEIGHT) {
+    throw new Error('Height should be <= 254');
+  }
+  const desc = newQRLDescriptor(height, hashFunction, signatureType, addrFormatType);
+
+  return initializeTree(desc, seed);
+}
+
+/**
+ * @param {Uint8Array} extendedSeed
+ * @returns {XMSS}
+ */
+function newXMSSFromExtendedSeed(extendedSeed) {
+  if (extendedSeed.length !== COMMON.EXTENDED_SEED_SIZE) {
+    throw new Error(`extendedSeed should be an array of size ${COMMON.EXTENDED_SEED_SIZE}`);
+  }
+
+  const desc = newQRLDescriptorFromExtendedSeed(extendedSeed);
+  const seed = new Uint8Array(COMMON.SEED_SIZE);
+  seed.set(extendedSeed.subarray(COMMON.DESCRIPTOR_SIZE));
+
+  return initializeTree(desc, seed);
+}
+
+/**
+ * @param {Uint8Array[number]} height
+ * @param {HashFunction} hashFunction
+ * @returns {XMSS}
+ */
+function newXMSSFromHeight(height, hashFunction) {
+  const seed = randomBytes$1(COMMON.SEED_SIZE);
+
+  return newXMSSFromSeed(seed, height, hashFunction, COMMON.SHA256_2X);
+}
+
+/**
+ * @param {Uint8Array} address
+ * @returns {boolean}
+ */
+function isValidXMSSAddress(address) {
+  if (address.length !== COMMON.ADDRESS_SIZE) {
+    throw new Error(`address should be an array of size ${COMMON.ADDRESS_SIZE}`);
+  }
+
+  const d = newQRLDescriptorFromBytes(address.subarray(0, COMMON.DESCRIPTOR_SIZE));
+  if (d.getSignatureType() !== COMMON.XMSS_SIG) {
+    return false;
+  }
+  if (d.getAddrFormatType() !== COMMON.SHA256_2X) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @param {Uint8Array} message
+ * @param {Uint8Array} signature
+ * @param {Uint8Array} extendedPK
+ * @param {Uint32Array[number]} wotsParamW
+ * @returns {boolean}
+ */
+function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsParamW) {
+  if (extendedPK.length !== CONSTANTS.EXTENDED_PK_SIZE) {
+    throw new Error(`extendedPK should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
+  }
+
+  const wotsParam = newWOTSParams(WOTS_PARAM.N, wotsParamW);
+
+  const signatureBaseSize = calculateSignatureBaseSize(wotsParam.keySize);
+  if (new Uint32Array([signature.length])[0] > signatureBaseSize + new Uint32Array([CONSTANTS.MAX_HEIGHT])[0] * 32) {
+    throw new Error('Invalid signature size. Height<=254');
+  }
+
+  const desc = newQRLDescriptorFromExtendedPk(extendedPK);
+
+  if (desc.getSignatureType() !== COMMON.XMSS_SIG) {
+    throw new Error('Invalid signature type');
+  }
+
+  const height = getHeightFromSigSize(new Uint32Array([signature.length])[0], wotsParamW);
+
+  if (height === 0 || new Uint32Array([desc.getHeight()])[0] !== height) {
+    return false;
+  }
+
+  const hashFunction = desc.getHashFunction();
+
+  const k = WOTS_PARAM.K;
+  const w = WOTS_PARAM.W;
+  const n = WOTS_PARAM.N;
+
+  if (k >= height || (height - k) % 2 === 1) {
+    throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
+  }
+
+  const params = newXMSSParams(n, height, w, k);
+  const tmp = signature;
+  return xmssVerifySig(
+    hashFunction,
+    params.wotsParams,
+    message,
+    tmp,
+    extendedPK.subarray(COMMON.DESCRIPTOR_SIZE),
+    height
+  );
+}
+
+/**
+ * @param {Uint8Array} message
+ * @param {Uint8Array} signature
+ * @param {Uint8Array} extendedPK
+ * @returns {boolean}
+ */
+function verify(message, signature, extendedPK) {
+  if (extendedPK.length !== CONSTANTS.EXTENDED_PK_SIZE) {
+    throw new Error(`extendedPK should be an array of size ${CONSTANTS.EXTENDED_PK_SIZE}`);
+  }
+
+  return verifyWithCustomWOTSParamW(message, signature, extendedPK, WOTS_PARAM.W);
+}
+
+export { COMMON, CONSTANTS, Dilithium, HASH_FUNCTION, OFFSET_IDX, OFFSET_PUB_SEED, OFFSET_ROOT, OFFSET_SK_PRF, OFFSET_SK_SEED, QRLDescriptorClass, WORD_LIST, WOTS_PARAM, XMSSClass, XMSSFastGenKeyPair, binToMnemonic, extendedSeedBinToMnemonic, extractMessage, extractSignature, getDilithiumAddressFromPK, getDilithiumDescriptor, getXMSSAddressFromPK, initializeTree, isValidDilithiumAddress, isValidXMSSAddress, mnemonicToBin, mnemonicToExtendedSeedBin, mnemonicToSeedBin, newQRLDescriptor, newQRLDescriptorFromBytes, newQRLDescriptorFromExtendedPk, newQRLDescriptorFromExtendedSeed, newXMSS, newXMSSFromExtendedSeed, newXMSSFromHeight, newXMSSFromSeed, openMessage, seedBinToMnemonic, treeHashSetup, verify, verifyMessage, verifyWithCustomWOTSParamW, xmssFastUpdate };

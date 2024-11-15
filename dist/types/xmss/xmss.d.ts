@@ -40,48 +40,10 @@ export function newXMSSFromExtendedSeed(extendedSeed: Uint8Array): XMSS;
  */
 export function newXMSSFromHeight(height: Uint8Array[number], hashFunction: HashFunction): XMSS;
 /**
- * @param {Uint32Array[number]} sigSize
- * @param {Uint32Array[number]} wotsParamW
- * @returns {Uint32Array[number]}
- */
-export function getHeightFromSigSize(sigSize: Uint32Array[number], wotsParamW: Uint32Array[number]): Uint32Array[number];
-/**
  * @param {Uint8Array} address
  * @returns {boolean}
  */
 export function isValidXMSSAddress(address: Uint8Array): boolean;
-/**
- * @param {HashFunction} hashfunction
- * @param {Uint8Array} pk
- * @param {Uint8Array} sig
- * @param {Uint8Array} msg
- * @param {WOTSParams} wotsParams
- * @param {Uint8Array} pubSeed
- * @param {Uint32Array} addr
- */
-export function wotsPKFromSig(hashfunction: HashFunction, pk: Uint8Array, sig: Uint8Array, msg: Uint8Array, wotsParams: WOTSParams, pubSeed: Uint8Array, addr: Uint32Array): void;
-/**
- * @param {HashFunction} hashFunction
- * @param {Uint8Array} root
- * @param {Uint8Array} leaf
- * @param {Uint32Array[number]} leafIdx
- * @param {Uint8Array} authpath
- * @param {Uint32Array[number]} n
- * @param {Uint32Array[number]} h
- * @param {Uint8Array} pubSeed
- * @param {Uint32Array} addr
- */
-export function validateAuthPath(hashFunction: HashFunction, root: Uint8Array, leaf: Uint8Array, leafIdx: Uint32Array[number], authpath: Uint8Array, n: Uint32Array[number], h: Uint32Array[number], pubSeed: Uint8Array, addr: Uint32Array): void;
-/**
- * @param {HashFunction} hashFunction
- * @param {WOTSParams} wotsParams
- * @param {Uint8Array} msg
- * @param {Uint8Array} sigMsg
- * @param {Uint8Array} pk
- * @param {Uint32Array[number]} h
- * @returns {boolean}
- */
-export function xmssVerifySig(hashFunction: HashFunction, wotsParams: WOTSParams, msg: Uint8Array, sigMsg: Uint8Array, pk: Uint8Array, h: Uint32Array[number]): boolean;
 /**
  * @param {Uint8Array} message
  * @param {Uint8Array} signature
@@ -97,4 +59,55 @@ export function verifyWithCustomWOTSParamW(message: Uint8Array, signature: Uint8
  * @returns {boolean}
  */
 export function verify(message: Uint8Array, signature: Uint8Array, extendedPK: Uint8Array): boolean;
+export class XMSSClass {
+    /**
+     * @param {XMSSParams} xmssParams
+     * @param {HashFunction} hashFunction
+     * @param {Uint8Array[number]} height
+     * @param {Uint8Array} sk
+     * @param {Uint8Array} seed
+     * @param {BDSState} bdsState
+     * @param {QRLDescriptor} desc
+     */
+    constructor(xmssParams: XMSSParams, hashFunction: HashFunction, height: Uint8Array[number], sk: Uint8Array, seed: Uint8Array, bdsState: BDSState, desc: QRLDescriptor);
+    /**
+     * @param {Uint32Array[number]} newIndex
+     * @returns {void}
+     */
+    setIndex(newIndex: Uint32Array[number]): void;
+    /** @returns {Uint8Array[number]} */
+    getHeight(): Uint8Array[number];
+    /** @returns {Uint8Array} */
+    getPKSeed(): Uint8Array;
+    /** @returns {Uint8Array} */
+    getSeed(): Uint8Array;
+    /** @returns {Uint8Array} */
+    getExtendedSeed(): Uint8Array;
+    /** @returns {string} */
+    getHexSeed(): string;
+    /** @returns {string} */
+    getMnemonic(): string;
+    /** @returns {Uint8Array} */
+    getRoot(): Uint8Array;
+    /** @returns {Uint8Array} */
+    getPK(): Uint8Array;
+    /** @returns {Uint8Array} */
+    getSK(): Uint8Array;
+    /** @returns {Uint8Array} */
+    getAddress(): Uint8Array;
+    /** @returns {Uint32Array[number]} */
+    getIndex(): Uint32Array[number];
+    /**
+     * @param {Uint8Array} message
+     * @returns {SignatureReturnType}
+     */
+    sign(message: Uint8Array): SignatureReturnType;
+    xmssParams: XMSSParams;
+    hashFunction: number;
+    height: number;
+    sk: Uint8Array;
+    seed: Uint8Array;
+    bdsState: BDSState;
+    desc: QRLDescriptor;
+}
 //# sourceMappingURL=xmss.d.ts.map

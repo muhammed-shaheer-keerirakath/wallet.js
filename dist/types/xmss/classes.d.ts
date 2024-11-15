@@ -21,4 +21,21 @@ export function newQRLDescriptorFromExtendedSeed(extendedSeed: Uint8Array): QRLD
  * @returns {QRLDescriptor}
  */
 export function newQRLDescriptorFromExtendedPk(extendedPk: Uint8Array): QRLDescriptor;
+export class QRLDescriptorClass {
+    constructor(hashFunction: any, signatureType: any, height: any, addrFormatType: any);
+    /** @returns {Uint8Array[number]} */
+    getHeight(): Uint8Array[number];
+    /** @returns {HashFunction} */
+    getHashFunction(): HashFunction;
+    /** @returns {SignatureType} */
+    getSignatureType(): SignatureType;
+    /** @returns {AddrFormatType} */
+    getAddrFormatType(): AddrFormatType;
+    /** @returns {Uint8Array} */
+    getBytes(): Uint8Array;
+    hashFunction: any;
+    signatureType: any;
+    height: any;
+    addrFormatType: any;
+}
 //# sourceMappingURL=classes.d.ts.map
