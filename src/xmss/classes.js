@@ -1,6 +1,6 @@
 import { COMMON, CONSTANTS } from './constants.js';
 
-export class QRLDescriptorClass {
+export class QRLDescriptor {
   /** @returns {Uint8Array[number]} */
   getHeight() {
     return this.height;
@@ -45,7 +45,7 @@ export class QRLDescriptorClass {
  * @returns {QRLDescriptor}
  */
 export function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
-  return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
+  return new QRLDescriptor(hashFunction, signatureType, height, addrFormatType);
 }
 
 /**
@@ -57,7 +57,7 @@ export function newQRLDescriptorFromBytes(descriptorBytes) {
     throw new Error('Descriptor size should be 3 bytes');
   }
 
-  return new QRLDescriptorClass(
+  return new QRLDescriptor(
     descriptorBytes[0] & 0x0f,
     (descriptorBytes[0] >>> 4) & 0x0f,
     (descriptorBytes[1] & 0x0f) << 1,

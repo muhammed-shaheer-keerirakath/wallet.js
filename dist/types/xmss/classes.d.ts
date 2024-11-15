@@ -21,7 +21,7 @@ export function newQRLDescriptorFromExtendedSeed(extendedSeed: Uint8Array): QRLD
  * @returns {QRLDescriptor}
  */
 export function newQRLDescriptorFromExtendedPk(extendedPk: Uint8Array): QRLDescriptor;
-export class QRLDescriptorClass {
+export class QRLDescriptor {
     constructor(hashFunction: any, signatureType: any, height: any, addrFormatType: any);
     /** @returns {Uint8Array[number]} */
     getHeight(): Uint8Array[number];

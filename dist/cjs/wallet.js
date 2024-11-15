@@ -4423,7 +4423,7 @@ function isValidDilithiumAddress(address) {
   return true;
 }
 
-class QRLDescriptorClass {
+class QRLDescriptor {
   /** @returns {Uint8Array[number]} */
   getHeight() {
     return this.height;
@@ -4468,7 +4468,7 @@ class QRLDescriptorClass {
  * @returns {QRLDescriptor}
  */
 function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
-  return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
+  return new QRLDescriptor(hashFunction, signatureType, height, addrFormatType);
 }
 
 /**
@@ -4480,7 +4480,7 @@ function newQRLDescriptorFromBytes(descriptorBytes) {
     throw new Error('Descriptor size should be 3 bytes');
   }
 
-  return new QRLDescriptorClass(
+  return new QRLDescriptor(
     descriptorBytes[0] & 0x0f,
     (descriptorBytes[0] >>> 4) & 0x0f,
     (descriptorBytes[1] & 0x0f) << 1,
@@ -4757,7 +4757,7 @@ function getXMSSAddressFromPK(ePK) {
   return address;
 }
 
-class XMSSClass {
+class XMSS {
   /**
    * @param {Uint32Array[number]} newIndex
    * @returns {void}
@@ -4912,7 +4912,7 @@ class XMSSClass {
  * @returns {XMSS}
  */
 function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
-  return new XMSSClass(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
+  return new XMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
 }
 
 /**
@@ -5089,10 +5089,10 @@ exports.OFFSET_PUB_SEED = OFFSET_PUB_SEED;
 exports.OFFSET_ROOT = OFFSET_ROOT;
 exports.OFFSET_SK_PRF = OFFSET_SK_PRF;
 exports.OFFSET_SK_SEED = OFFSET_SK_SEED;
-exports.QRLDescriptorClass = QRLDescriptorClass;
+exports.QRLDescriptor = QRLDescriptor;
 exports.WORD_LIST = WORD_LIST;
 exports.WOTS_PARAM = WOTS_PARAM;
-exports.XMSSClass = XMSSClass;
+exports.XMSS = XMSS;
 exports.XMSSFastGenKeyPair = XMSSFastGenKeyPair;
 exports.binToMnemonic = binToMnemonic;
 exports.extendedSeedBinToMnemonic = extendedSeedBinToMnemonic;

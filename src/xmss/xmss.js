@@ -58,7 +58,7 @@ export function getXMSSAddressFromPK(ePK) {
   return address;
 }
 
-export class XMSSClass {
+export class XMSS {
   /**
    * @param {Uint32Array[number]} newIndex
    * @returns {void}
@@ -213,7 +213,7 @@ export class XMSSClass {
  * @returns {XMSS}
  */
 export function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
-  return new XMSSClass(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
+  return new XMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
 }
 
 /**

@@ -59,7 +59,7 @@ export function verifyWithCustomWOTSParamW(message: Uint8Array, signature: Uint8
  * @returns {boolean}
  */
 export function verify(message: Uint8Array, signature: Uint8Array, extendedPK: Uint8Array): boolean;
-export class XMSSClass {
+export class XMSS {
     /**
      * @param {XMSSParams} xmssParams
      * @param {HashFunction} hashFunction

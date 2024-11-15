@@ -4421,7 +4421,7 @@ function isValidDilithiumAddress(address) {
   return true;
 }
 
-class QRLDescriptorClass {
+class QRLDescriptor {
   /** @returns {Uint8Array[number]} */
   getHeight() {
     return this.height;
@@ -4466,7 +4466,7 @@ class QRLDescriptorClass {
  * @returns {QRLDescriptor}
  */
 function newQRLDescriptor(height, hashFunction, signatureType, addrFormatType) {
-  return new QRLDescriptorClass(hashFunction, signatureType, height, addrFormatType);
+  return new QRLDescriptor(hashFunction, signatureType, height, addrFormatType);
 }
 
 /**
@@ -4478,7 +4478,7 @@ function newQRLDescriptorFromBytes(descriptorBytes) {
     throw new Error('Descriptor size should be 3 bytes');
   }
 
-  return new QRLDescriptorClass(
+  return new QRLDescriptor(
     descriptorBytes[0] & 0x0f,
     (descriptorBytes[0] >>> 4) & 0x0f,
     (descriptorBytes[1] & 0x0f) << 1,
@@ -4755,7 +4755,7 @@ function getXMSSAddressFromPK(ePK) {
   return address;
 }
 
-class XMSSClass {
+class XMSS {
   /**
    * @param {Uint32Array[number]} newIndex
    * @returns {void}
@@ -4910,7 +4910,7 @@ class XMSSClass {
  * @returns {XMSS}
  */
 function newXMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc) {
-  return new XMSSClass(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
+  return new XMSS(xmssParams, hashFunction, height, sk, seed, bdsState, desc);
 }
 
 /**
@@ -5078,4 +5078,4 @@ function verify(message, signature, extendedPK) {
   return verifyWithCustomWOTSParamW(message, signature, extendedPK, WOTS_PARAM.W);
 }
 
-export { COMMON, CONSTANTS, Dilithium, HASH_FUNCTION, OFFSET_IDX, OFFSET_PUB_SEED, OFFSET_ROOT, OFFSET_SK_PRF, OFFSET_SK_SEED, QRLDescriptorClass, WORD_LIST, WOTS_PARAM, XMSSClass, XMSSFastGenKeyPair, binToMnemonic, extendedSeedBinToMnemonic, extractMessage, extractSignature, getDilithiumAddressFromPK, getDilithiumDescriptor, getXMSSAddressFromPK, initializeTree, isValidDilithiumAddress, isValidXMSSAddress, mnemonicToBin, mnemonicToExtendedSeedBin, mnemonicToSeedBin, newQRLDescriptor, newQRLDescriptorFromBytes, newQRLDescriptorFromExtendedPk, newQRLDescriptorFromExtendedSeed, newXMSS, newXMSSFromExtendedSeed, newXMSSFromHeight, newXMSSFromSeed, openMessage, seedBinToMnemonic, treeHashSetup, verify, verifyMessage, verifyWithCustomWOTSParamW, xmssFastUpdate };
+export { COMMON, CONSTANTS, Dilithium, HASH_FUNCTION, OFFSET_IDX, OFFSET_PUB_SEED, OFFSET_ROOT, OFFSET_SK_PRF, OFFSET_SK_SEED, QRLDescriptor, WORD_LIST, WOTS_PARAM, XMSS, XMSSFastGenKeyPair, binToMnemonic, extendedSeedBinToMnemonic, extractMessage, extractSignature, getDilithiumAddressFromPK, getDilithiumDescriptor, getXMSSAddressFromPK, initializeTree, isValidDilithiumAddress, isValidXMSSAddress, mnemonicToBin, mnemonicToExtendedSeedBin, mnemonicToSeedBin, newQRLDescriptor, newQRLDescriptorFromBytes, newQRLDescriptorFromExtendedPk, newQRLDescriptorFromExtendedSeed, newXMSS, newXMSSFromExtendedSeed, newXMSSFromHeight, newXMSSFromSeed, openMessage, seedBinToMnemonic, treeHashSetup, verify, verifyMessage, verifyWithCustomWOTSParamW, xmssFastUpdate };
