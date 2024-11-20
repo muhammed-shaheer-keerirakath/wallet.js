@@ -132,7 +132,7 @@ export function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, s
     throw new Error('seed should be an array of size 48');
   }
 
-  if (xmssParams.h % 2 === 1) {
+  if ((xmssParams.h & 1) === 1) {
     throw new Error('Not a valid h, only even numbers supported! Try again with an even number');
   }
 
