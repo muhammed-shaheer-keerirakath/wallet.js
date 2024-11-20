@@ -4628,6 +4628,10 @@ function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, 
  * @param {Uint8Array} seed
  */
 function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
+  if (seed.length !== 48) {
+    throw new Error('seed should be an array of size 48');
+  }
+
   if (xmssParams.h % 2 === 1) {
     throw new Error('Not a valid h, only even numbers supported! Try again with an even number');
   }
