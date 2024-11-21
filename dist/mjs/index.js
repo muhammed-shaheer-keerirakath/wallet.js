@@ -4154,7 +4154,7 @@ function binToMnemonic(input) {
       [b2] = new Uint32Array([input[p + 1]]);
     }
     let [idx] = new Uint32Array([0]);
-    if (nibble % 2 === 0) {
+    if ((nibble & 1) === 0) {
       idx = (b1 << 4) + (b2 >>> 4);
     } else {
       idx = ((b1 & 0x0f) << 8) + b2;
@@ -4200,7 +4200,7 @@ function extendedSeedBinToMnemonic(input) {
 function mnemonicToBin(mnemonic) {
   const mnemonicWords = mnemonic.split(' ');
   const wordCount = mnemonicWords.length;
-  if (wordCount % 2 !== 0) {
+  if ((wordCount & 1) === 1) {
     throw new Error(`Word count = ${wordCount} must be even`);
   }
 
@@ -4936,7 +4936,7 @@ function initializeTree(desc, seed) {
   const w = WOTS_PARAM.W;
   const n = WOTS_PARAM.N;
 
-  if (k >= height || (height - k) % 2 === 1) {
+  if (k >= height || ((height - k) & 1) === 1) {
     throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
   }
 
@@ -5052,7 +5052,7 @@ function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsParamW) 
   const w = WOTS_PARAM.W;
   const n = WOTS_PARAM.N;
 
-  if (k >= height || (height - k) % 2 === 1) {
+  if (k >= height || ((height - k) & 1) === 1) {
     throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
   }
 

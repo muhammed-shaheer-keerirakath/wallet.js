@@ -235,7 +235,7 @@ export function initializeTree(desc, seed) {
   const w = WOTS_PARAM.W;
   const n = WOTS_PARAM.N;
 
-  if (k >= height || (height - k) % 2 === 1) {
+  if (k >= height || ((height - k) & 1) === 1) {
     throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
   }
 
@@ -351,7 +351,7 @@ export function verifyWithCustomWOTSParamW(message, signature, extendedPK, wotsP
   const w = WOTS_PARAM.W;
   const n = WOTS_PARAM.N;
 
-  if (k >= height || (height - k) % 2 === 1) {
+  if (k >= height || ((height - k) & 1) === 1) {
     throw new Error('For BDS traversal, H - K must be even, with H > K >= 2!');
   }
 
