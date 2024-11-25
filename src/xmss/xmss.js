@@ -35,25 +35,15 @@ export function getXMSSAddressFromPK(ePK) {
   const address = new Uint8Array(COMMON.ADDRESS_SIZE);
   const descBytes = desc.getBytes();
 
-  for (
-    let addressIndex = 0, descBytesIndex = 0;
-    addressIndex < COMMON.DESCRIPTOR_SIZE && descBytesIndex < descBytes.length;
-    addressIndex++, descBytesIndex++
-  ) {
-    address.set([descBytes[descBytesIndex]], addressIndex);
-  }
+  address.set(descBytes.subarray());
 
   const hashedKey = new Uint8Array(32);
   shake256(hashedKey, ePK);
 
-  for (
-    let addressIndex = COMMON.DESCRIPTOR_SIZE,
-      hashedKeyIndex = hashedKey.length - COMMON.ADDRESS_SIZE + COMMON.DESCRIPTOR_SIZE;
-    addressIndex < address.length && hashedKeyIndex < hashedKey.length;
-    addressIndex++, hashedKeyIndex++
-  ) {
-    address.set([hashedKey[hashedKeyIndex]], addressIndex);
-  }
+  address.set(
+    hashedKey.subarray(hashedKey.length - COMMON.ADDRESS_SIZE + COMMON.DESCRIPTOR_SIZE, hashedKey.length),
+    COMMON.DESCRIPTOR_SIZE
+  );
 
   return address;
 }
