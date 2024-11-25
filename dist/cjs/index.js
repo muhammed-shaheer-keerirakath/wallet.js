@@ -4574,26 +4574,14 @@ function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, 
       if (i >>> nodeH === 1) {
         const authStart = nodeH * n;
         const stackStart = (stackOffset - 1) * n;
-        for (
-          let authIndex = authStart, stackIndex = stackStart;
-          authIndex < authStart + n && stackIndex < stackStart + n;
-          authIndex++, stackIndex++
-        ) {
-          bdsState1.auth.set([stack[stackIndex]], authIndex);
-        }
+        bdsState1.auth.set(stack.subarray(stackStart, stackStart + n), authStart);
       } else if (nodeH < h - k && i >>> nodeH === 3) {
         const stackStart = (stackOffset - 1) * n;
         bdsState1.treeHash[nodeH].node.set(stack.subarray(stackStart, stackStart + n));
       } else if (nodeH >= h - k) {
         const retainStart = ((1 << (h - 1 - nodeH)) + nodeH - h + (((i >>> nodeH) - 3) >>> 1)) * n;
         const stackStart = (stackOffset - 1) * n;
-        for (
-          let retainIndex = retainStart, stackIndex = stackStart;
-          retainIndex < retainStart + n && stackIndex < stackStart + n;
-          retainIndex++, stackIndex++
-        ) {
-          bdsState1.retain.set([stack[stackIndex]], retainIndex);
-        }
+        bdsState1.retain.set(stack.subarray(stackStart, stackStart + n), retainStart);
       }
       xmss.setTreeHeight(nodeAddr, stackLevels[stackOffset - 1]);
       xmss.setTreeIndex(nodeAddr, index1 >>> (stackLevels[stackOffset - 1] + 1));
