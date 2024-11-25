@@ -1,4 +1,4 @@
-import { newBDSState, newXMSSParams, HASH_FUNCTION } from '@theqrl/xmss';
+import { HASH_FUNCTION, newBDSState, newXMSSParams } from '@theqrl/xmss';
 import { expect } from 'chai';
 import { XMSSFastGenKeyPair, treeHashSetup, xmssFastUpdate } from '../src/xmss/xmssFast.js';
 import { getUInt32ArrayFromHex, getUInt8ArrayFromHex } from './testUtility.js';
@@ -129,7 +129,7 @@ describe('Test cases for [xmssFast]', function testFunction() {
       const height = 4;
       const k = 3;
       const w = 7;
-      const n = 37;
+      const n = 32;
       const xmssParams = newXMSSParams(n, height, w, k);
       const bdsState = newBDSState(height, n, k);
       const pk = getUInt8ArrayFromHex(
@@ -142,10 +142,10 @@ describe('Test cases for [xmssFast]', function testFunction() {
         '2723042729061f24221c2e18182a2f2321060a2e0e20011e072f1a1c09071f260c122b281c112701242d002b21180f11'
       );
       const expectedPk = getUInt8ArrayFromHex(
-        'fa872a4f90a9a989e38b5aca522d3f26e8b7cb1f22bb7f376eb061d668ed570216d0d6278edbcdd5f805ce41274d0ca4b523de88b29aeb6296c2fb3e46052636'
+        'f13e276b3920fcfe47db7fc6268babb5089b2deda012192d93bc6301a6ae5d5b70db23dffe10be09b9f6dbcdd5f805ce41274d0ca4b523de88b29aeb6296c2fb'
       );
       const expectedSk = getUInt8ArrayFromHex(
-        '00000000224f2d06b66f41867fab1930e619eb3544a29d806497c2f32a0fc8f1b9e81f557689eeb3b3db12a800320e5dd803ec7a9624e17d2f1a4aa3dac91ac9bc42eea570db23dffe10be09b9f6dbcdd5f805ce41274d0ca4b523de88b29aeb6296c2fb3e46052636814b07360e164f72421cfa872a4f90a9a989e38b5aca522d3f26e8'
+        '00000000224f2d06b66f41867fab1930e619eb3544a29d806497c2f32a0fc8f1b9e81f557689eeb3b3db12a800320e5dd803ec7a9624e17d2f1a4aa3dac91ac9bc42eea570db23dffe10be09b9f6dbcdd5f805ce41274d0ca4b523de88b29aeb6296c2fbf13e276b3920fcfe47db7fc6268babb5089b2deda012192d93bc6301a6ae5d5b'
       );
       const expectedSeed = getUInt8ArrayFromHex(
         '2723042729061f24221c2e18182a2f2321060a2e0e20011e072f1a1c09071f260c122b281c112701242d002b21180f11'

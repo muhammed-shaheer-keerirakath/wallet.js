@@ -135,9 +135,7 @@ export function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, s
   const rnd = 96;
   const pks = new Uint32Array([32])[0];
   sk.set(randombits.subarray(0, rnd), 4);
-  for (let pkIndex = n, skIndex = 4 + 2 * n; pkIndex < pk.length && skIndex < 4 + 2 * n + pks; pkIndex++, skIndex++) {
-    pk.set([sk[skIndex]], pkIndex);
-  }
+  pk.set(sk.subarray(4 + 2 * n, 4 + 2 * n + pks), n);
 
   const addr = new Uint32Array(8);
   treeHashSetup(
@@ -151,9 +149,7 @@ export function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, s
     addr
   );
 
-  for (let skIndex = 4 + 3 * n, pkIndex = 0; skIndex < sk.length && pkIndex < pks; skIndex++, pkIndex++) {
-    sk.set([pk[pkIndex]], skIndex);
-  }
+  sk.set(pk.subarray(0, pks), 4 + 3 * n);
 }
 
 /**
