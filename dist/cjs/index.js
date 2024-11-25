@@ -4756,20 +4756,8 @@ class XMSS {
     const extendedSeed = new Uint8Array(COMMON.EXTENDED_SEED_SIZE);
     const descBytes = this.desc.getBytes();
     const seed = this.getSeed();
-    for (
-      let extSeedIndex = 0, bytesIndex = 0;
-      extSeedIndex < 3 && bytesIndex < descBytes.length;
-      extSeedIndex++, bytesIndex++
-    ) {
-      extendedSeed.set([descBytes[bytesIndex]], extSeedIndex);
-    }
-    for (
-      let extSeedIndex = 3, seedIndex = 0;
-      extSeedIndex < extendedSeed.length && seedIndex < seed.length;
-      extSeedIndex++, seedIndex++
-    ) {
-      extendedSeed.set([seed[seedIndex]], extSeedIndex);
-    }
+    extendedSeed.set(descBytes.subarray());
+    extendedSeed.set(seed.subarray(), 3);
 
     return extendedSeed;
   }
