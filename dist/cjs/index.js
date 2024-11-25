@@ -4676,13 +4676,7 @@ function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
 
   const startOffset = 4 + 2 * 32;
   const pubSeed = new Uint8Array(params.n);
-  for (
-    let pubSeedIndex = 0, skIndex = startOffset;
-    pubSeedIndex < 32 && skIndex < startOffset + 32;
-    pubSeedIndex++, skIndex++
-  ) {
-    pubSeed.set([sk[skIndex]], pubSeedIndex);
-  }
+  pubSeed.set(sk.subarray(startOffset, startOffset + 32));
 
   const otsAddr = new Uint32Array(8);
 
