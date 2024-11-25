@@ -121,13 +121,7 @@ export function mnemonicToSeedBin(mnemonic) {
   }
 
   const sizedOutput = new Uint8Array(COMMON.SEED_SIZE);
-  for (
-    let sizedOutputIndex = 0, outputIndex = 0;
-    sizedOutputIndex < sizedOutput.length && outputIndex < output.length;
-    sizedOutputIndex++, outputIndex++
-  ) {
-    sizedOutput.set([output[outputIndex]], sizedOutputIndex);
-  }
+  sizedOutput.set(output.subarray());
 
   return sizedOutput;
 }
