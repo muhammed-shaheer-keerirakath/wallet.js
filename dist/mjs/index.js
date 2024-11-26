@@ -4255,13 +4255,7 @@ function mnemonicToSeedBin(mnemonic) {
   }
 
   const sizedOutput = new Uint8Array(COMMON.SEED_SIZE);
-  for (
-    let sizedOutputIndex = 0, outputIndex = 0;
-    sizedOutputIndex < sizedOutput.length && outputIndex < output.length;
-    sizedOutputIndex++, outputIndex++
-  ) {
-    sizedOutput.set([output[outputIndex]], sizedOutputIndex);
-  }
+  sizedOutput.set(output.subarray());
 
   return sizedOutput;
 }
@@ -4278,13 +4272,7 @@ function mnemonicToExtendedSeedBin(mnemonic) {
   }
 
   const sizedOutput = new Uint8Array(COMMON.EXTENDED_SEED_SIZE);
-  for (
-    let sizedOutputIndex = 0, outputIndex = 0;
-    sizedOutputIndex < sizedOutput.length && outputIndex < output.length;
-    sizedOutputIndex++, outputIndex++
-  ) {
-    sizedOutput.set([output[outputIndex]], sizedOutputIndex);
-  }
+  sizedOutput.set(output.subarray());
 
   return sizedOutput;
 }
@@ -4578,26 +4566,14 @@ function treeHashSetup(hashFunction, node, index, bdsState, skSeed, xmssParams, 
       if (i >>> nodeH === 1) {
         const authStart = nodeH * n;
         const stackStart = (stackOffset - 1) * n;
-        for (
-          let authIndex = authStart, stackIndex = stackStart;
-          authIndex < authStart + n && stackIndex < stackStart + n;
-          authIndex++, stackIndex++
-        ) {
-          bdsState1.auth.set([stack[stackIndex]], authIndex);
-        }
+        bdsState1.auth.set(stack.subarray(stackStart, stackStart + n), authStart);
       } else if (nodeH < h - k && i >>> nodeH === 3) {
         const stackStart = (stackOffset - 1) * n;
         bdsState1.treeHash[nodeH].node.set(stack.subarray(stackStart, stackStart + n));
       } else if (nodeH >= h - k) {
         const retainStart = ((1 << (h - 1 - nodeH)) + nodeH - h + (((i >>> nodeH) - 3) >>> 1)) * n;
         const stackStart = (stackOffset - 1) * n;
-        for (
-          let retainIndex = retainStart, stackIndex = stackStart;
-          retainIndex < retainStart + n && stackIndex < stackStart + n;
-          retainIndex++, stackIndex++
-        ) {
-          bdsState1.retain.set([stack[stackIndex]], retainIndex);
-        }
+        bdsState1.retain.set(stack.subarray(stackStart, stackStart + n), retainStart);
       }
       setTreeHeight(nodeAddr, stackLevels[stackOffset - 1]);
       setTreeIndex(nodeAddr, index1 >>> (stackLevels[stackOffset - 1] + 1));
@@ -4647,9 +4623,7 @@ function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
   const rnd = 96;
   const pks = new Uint32Array([32])[0];
   sk.set(randombits.subarray(0, rnd), 4);
-  for (let pkIndex = n, skIndex = 4 + 2 * n; pkIndex < pk.length && skIndex < 4 + 2 * n + pks; pkIndex++, skIndex++) {
-    pk.set([sk[skIndex]], pkIndex);
-  }
+  pk.set(sk.subarray(4 + 2 * n, 4 + 2 * n + pks), n);
 
   const addr = new Uint32Array(8);
   treeHashSetup(
@@ -4663,9 +4637,7 @@ function XMSSFastGenKeyPair(hashFunction, xmssParams, pk, sk, bdsState, seed) {
     addr
   );
 
-  for (let skIndex = 4 + 3 * n, pkIndex = 0; skIndex < sk.length && pkIndex < pks; skIndex++, pkIndex++) {
-    sk.set([pk[pkIndex]], skIndex);
-  }
+  sk.set(pk.subarray(0, pks), 4 + 3 * n);
 }
 
 /**
@@ -4696,13 +4668,7 @@ function xmssFastUpdate(hashFunction, params, sk, bdsState, newIdx) {
 
   const startOffset = 4 + 2 * 32;
   const pubSeed = new Uint8Array(params.n);
-  for (
-    let pubSeedIndex = 0, skIndex = startOffset;
-    pubSeedIndex < 32 && skIndex < startOffset + 32;
-    pubSeedIndex++, skIndex++
-  ) {
-    pubSeed.set([sk[skIndex]], pubSeedIndex);
-  }
+  pubSeed.set(sk.subarray(startOffset, startOffset + 32));
 
   const otsAddr = new Uint32Array(8);
 
@@ -4736,25 +4702,15 @@ function getXMSSAddressFromPK(ePK) {
   const address = new Uint8Array(COMMON.ADDRESS_SIZE);
   const descBytes = desc.getBytes();
 
-  for (
-    let addressIndex = 0, descBytesIndex = 0;
-    addressIndex < COMMON.DESCRIPTOR_SIZE && descBytesIndex < descBytes.length;
-    addressIndex++, descBytesIndex++
-  ) {
-    address.set([descBytes[descBytesIndex]], addressIndex);
-  }
+  address.set(descBytes.subarray());
 
   const hashedKey = new Uint8Array(32);
   shake256(hashedKey, ePK);
 
-  for (
-    let addressIndex = COMMON.DESCRIPTOR_SIZE,
-      hashedKeyIndex = hashedKey.length - COMMON.ADDRESS_SIZE + COMMON.DESCRIPTOR_SIZE;
-    addressIndex < address.length && hashedKeyIndex < hashedKey.length;
-    addressIndex++, hashedKeyIndex++
-  ) {
-    address.set([hashedKey[hashedKeyIndex]], addressIndex);
-  }
+  address.set(
+    hashedKey.subarray(hashedKey.length - COMMON.ADDRESS_SIZE + COMMON.DESCRIPTOR_SIZE, hashedKey.length),
+    COMMON.DESCRIPTOR_SIZE
+  );
 
   return address;
 }
@@ -4788,20 +4744,8 @@ class XMSS {
     const extendedSeed = new Uint8Array(COMMON.EXTENDED_SEED_SIZE);
     const descBytes = this.desc.getBytes();
     const seed = this.getSeed();
-    for (
-      let extSeedIndex = 0, bytesIndex = 0;
-      extSeedIndex < 3 && bytesIndex < descBytes.length;
-      extSeedIndex++, bytesIndex++
-    ) {
-      extendedSeed.set([descBytes[bytesIndex]], extSeedIndex);
-    }
-    for (
-      let extSeedIndex = 3, seedIndex = 0;
-      extSeedIndex < extendedSeed.length && seedIndex < seed.length;
-      extSeedIndex++, seedIndex++
-    ) {
-      extendedSeed.set([seed[seedIndex]], extSeedIndex);
-    }
+    extendedSeed.set(descBytes.subarray());
+    extendedSeed.set(seed.subarray(), 3);
 
     return extendedSeed;
   }
